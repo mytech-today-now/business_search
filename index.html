@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Export Businesses Using Overpass (No Google API)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+    #log {
+      margin-top: 1rem;
+      white-space: pre-wrap;
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 4px;
+      height: 300px;
+      overflow-y: auto;
+      font-family: Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    .download-link {
+      margin: 0.5rem 0;
+      display: block;
+    }
+  </style>
+  <!-- Add JSZip library in the head section -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <h1>Export Businesses (<span class="radius">21.75</span> mi radius around 60010) as CSV</h1>
+  <p>
+    This page uses the Overpass API (OpenStreetMap) to fetch business data in a <span class="radius">21.75</span> mi (<span class="radius-meters">35000</span>m) radius around ZIP 60010 (Barrington, IL).
+    Click “Run Export” to generate separate CSVs for each category. No API key is required.
+  </p>
+  <button id="runBtn">Run Export</button>
+  <button id="downloadAllBtn" disabled>Download All as ZIP</button>
+
+  <div id="log"></div>
+  <div id="downloads"></div>
+
+  <script>
+    (function () {
+      // ======================================================
+      // Configuration
+      // ======================================================
+      // Center of ZIP 60010 (Barrington, IL)
+      const LAT = 42.1397;
+      const LNG = -88.1466;
+      // 21.75 miles = 35000 meters (1 mile ≈ 1609.34 meters)
+      const RADIUS = 47000;
+      const RADIUS_MILES = Math.round((RADIUS / 1609.34) * 100) / 100; // Convert to miles with 2 decimal places
+
+      /**
+       * Each key is the CSV filename.
+       * Each value is an Overpass filter clause (field, value) or a compound filter.
+       *
+       * Note: OSM tags vary in coverage. Some categories may yield fewer results if tagging is inconsistent.
+       */
+      const CATEGORIES = {
+        "child_care_centers.csv":      [{ key: "amenity", value: "childcare" }],
+        "lawyers.csv":                 [{ key: "office",   value: "lawyer" }],
+        "auto_mechanic_shops.csv":     [{ key: "shop",     value: "car_repair" }],
+        "therapists.csv":              [{ key: "office",   value: "therapist" }],
+        "architects.csv":              [{ key: "office",   value: "architect" }],
+        "construction_companies.csv":  [{ key: "office",   value: "contractor" }],
+        "florists.csv":                [{ key: "shop",     value: "florist" }],
+        "chiropractors.csv":           [{ key: "office",   value: "chiropractor" }],
+        "liquor_distributors.csv":     [{ key: "shop",     value: "alcohol" }],
+        "manufacturers.csv":           [{ key: "industrial", value: "manufacturer" }],
+        "hair_salons.csv":             [{ key: "shop",     value: "hairdresser" }],
+        "nail_shops.csv":              [{ key: "shop",     value: "beauty" }],
+        "auto_body_shops.csv":         [{ key: "shop",     value: "car_repair" }], // same as auto_mechanic
+        "montessori_schools.csv":      [{ key: "amenity",  value: "school" }, { key: "school:level", value: "pre_school" }],
+        "wealth_management.csv":       [{ key: "office",   value: "financial" }],
+        "venture_capital.csv":         [{ key: "office",   value: "financial" }],
+        "stock_brokers.csv":           [{ key: "office",   value: "financial" }],
+        "medical_practices.csv":       [{ key: "amenity",  value: "clinic" }],
+        "hospitals.csv":               [{ key: "amenity",  value: "hospital" }],
+        "dental_practices.csv":        [{ key: "amenity",  value: "dentist" }],
+        "veterinary_clinics.csv":      [{ key: "amenity",  value: "veterinary" }],
+        "nursing_homes.csv":           [{ key: "amenity",  value: "nursing_home" }],
+        "assisted_living.csv":         [{ key: "amenity",  value: "social_facility" }],
+        "pharmaceutical_companies.csv": [{ key: "shop",    value: "pharmacy" }],
+        "manufacturing_industrial.csv": [{ key: "industrial", value: "manufacturer" }],
+        "auto_dealerships.csv":        [{ key: "shop",     value: "car" }],
+        "banks_financial.csv":         [{ key: "amenity",  value: "bank" }],
+        "accounting_firms.csv":        [{ key: "office",   value: "accountant" }],
+        "insurance_agencies.csv":      [{ key: "office",   value: "insurance" }],
+        "real_estate_agencies.csv":    [{ key: "office",   value: "real_estate" }],
+        "educational_institutions.csv": [{ key: "amenity", value: "school" }],
+        "daycare_centers.csv":         [{ key: "amenity",  value: "childcare" }],
+        "nonprofits.csv":              [{ key: "office",   value: "non_profit_organization" }],
+        "government_agencies.csv":     [{ key: "office",   value: "government" }],
+        "retail_stores.csv":           [{ key: "shop" }], // generic shop filter
+        "restaurants.csv":             [{ key: "amenity",  value: "restaurant" }],
+        "hotels_motels.csv":           [{ key: "tourism",  value: "hotel" }],
+        "logistics_transport.csv":     [{ key: "office",   value: "logistics" }],
+        "engineering_firms.csv":       [{ key: "office",   value: "engineering" }],
+        "architecture_design.csv":     [{ key: "office",   value: "architect" }],
+        "consulting_firms.csv":        [{ key: "office",   value: "consulting" }],
+        "marketing_agencies.csv":      [{ key: "office",   value: "marketing" }],
+        "media_production.csv":        [{ key: "office",   value: "media" }],
+        "telecom_voip.csv":            [{ key: "office",   value: "telecom" }],
+        "energy_utility.csv":          [{ key: "office",   value: "utility" }],
+        "gyms_fitness.csv":            [{ key: "leisure",  value: "fitness_centre" }],
+        "salons_spas.csv":             [{ key: "shop",     value: "beauty" }],
+        "agriculture_farming.csv":     [{ key: "landuse",  value: "farmland" }],
+        "aerospace_aviation.csv":      [{ key: "aeroway" }],
+        "coworking_spaces.csv":        [{ key: "office",   value: "coworking" }],
+      };
+
+      const CSV_HEADER = [
+        "Name",
+        "Street Number",
+        "Street Name",
+        "City",
+        "State",
+        "ZIP+4",
+        "Phone Number",
+        "Fax Number",
+        "Email Address",
+        "Website",
+        "Contact Name(s)"
+      ];
+
+      // ======================================================
+      // DOM Elements
+      // ======================================================
+      const runBtn = document.getElementById("runBtn");
+      const logDiv = document.getElementById("log");
+      const downloadsDiv = document.getElementById("downloads");
+
+      // ======================================================
+      // Logging Utility
+      // ======================================================
+      function log(message) {
+        const timeStamp = new Date().toLocaleTimeString();
+        logDiv.textContent += `[${timeStamp}] ${message}\n`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+      }
+
+      // ======================================================
+      // Delay Helper
+      // ======================================================
+      function delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      // ======================================================
+      // Build Overpass QL Query for one category
+      // ======================================================
+      function buildOverpassQuery(filters) {
+        // filters: array of { key, value? }. If value omitted, match any element with that key.
+        // We will query for node, way, and relation.
+        let filterClauses = filters.map(f => {
+          if (f.value) {
+            return `["${f.key}"="${f.value}"]`;
+          } else {
+            return `["${f.key}"]`;
+          }
+        }).join("");
+
+        // Around: RADIUS meters around LAT,LNG
+        return `
+[out:json][timeout:25];
+(
+  node${filterClauses}(around:${RADIUS},${LAT},${LNG});
+  way${filterClauses}(around:${RADIUS},${LAT},${LNG});
+  relation${filterClauses}(around:${RADIUS},${LAT},${LNG});
+);
+out center tags;
+        `.trim();
+      }
+
+      // ======================================================
+      // Fetch from Overpass API
+      // ======================================================
+      async function fetchOverpass(query) {
+        const url = "https://overpass-api.de/api/interpreter";
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ data: query })
+        });
+        if (!resp.ok) {
+          throw new Error(`Overpass error: ${resp.status} ${resp.statusText}`);
+        }
+        return resp.json();
+      }
+
+      // ======================================================
+      // Parse OSM tags into address fields
+      // ======================================================
+      function parseOsmTags(tags = {}) {
+        // OSM address tags:
+        //   addr:housenumber, addr:street, addr:city, addr:state, addr:postcode, contact:phone, contact:fax, contact:email, website
+        const name = tags.name || "";
+        const streetNumber = tags["addr:housenumber"] || "";
+        const streetName   = tags["addr:street"] || "";
+        const city         = tags["addr:city"] || "";
+        const state        = tags["addr:state"] || "";
+        // OSM typically doesn’t include ZIP+4; store full postcode if available
+        const postcode     = tags["addr:postcode"] || "";
+        const phone        = tags["contact:phone"] || tags.phone || "";
+        const fax          = tags["contact:fax"] || "";
+        const email        = tags["contact:email"] || "";
+        const website      = tags["contact:website"] || tags.website || "";
+        const contacts     = ""; // Not stored in standard OSM tags
+        return {
+          name,
+          streetNumber,
+          streetName,
+          city,
+          state,
+          postcode,
+          phone,
+          fax,
+          email,
+          website,
+          contacts
+        };
+      }
+
+      // ======================================================
+      // CSV escaping
+      // ======================================================
+      function escapeCSV(value) {
+        if (value == null) return "";
+        const str = value.toString();
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      }
+
+      function generateCSVString(rows) {
+        return rows.map(row => row.map(escapeCSV).join(",")).join("\r\n");
+      }
+
+      // ======================================================
+      // Process a single category: fetch OSM data, build CSV rows, provide download link
+      // ======================================================
+      async function processCategory(filename, filters) {
+        log(`→ Starting category: ${filename}`);
+        const rows = [CSV_HEADER];
+
+        const query = buildOverpassQuery(filters);
+        log(`   Querying Overpass for filters: ${JSON.stringify(filters)}`);
+
+        let data;
+        try {
+          data = await fetchOverpass(query);
+        } catch (err) {
+          log(`   [!] Overpass fetch error for ${filename}: ${err.message}`);
+          return;
+        }
+        const elements = data.elements || [];
+        log(`   Retrieved ${elements.length} elements for ${filename}`);
+
+        for (const el of elements) {
+          const tags = el.tags || {};
+          const {
+            name,
+            streetNumber,
+            streetName,
+            city,
+            state,
+            postcode,
+            phone,
+            fax,
+            email,
+            website,
+            contacts
+          } = parseOsmTags(tags);
+          
+          // Skip entries with no name or no address information
+          if (!name || (!streetNumber && !streetName && !city)) {
+            continue;
+          }
+          
+          rows.push([
+            name,
+            streetNumber,
+            streetName,
+            city,
+            state,
+            postcode,
+            phone,
+            fax,
+            email,
+            website,
+            contacts
+          ]);
+        }
+
+        // Skip creating CSV if there are no data rows (only header)
+        if (rows.length <= 1) {
+          log(`   [i] No valid data for ${filename} - skipping file creation`);
+          return;
+        }
+
+        const csvContent = generateCSVString(rows);
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+        link.textContent = `Download ${filename}`;
+        link.className = "download-link";
+        downloadsDiv.appendChild(link);
+
+        log(`✔ Finished category: ${filename} (${rows.length - 1} rows)`);
+      }
+
+      // ======================================================
+      // Main Runner: iterate categories sequentially
+      // ======================================================
+      async function runExport() {
+        // Clear log and download links
+        logDiv.textContent = "";
+        downloadsDiv.innerHTML = "";
+        
+        runBtn.disabled = true;
+        downloadAllBtn.disabled = true;
+        log("=== Export Started (Overpass) ===");
+
+        for (const [filename, filters] of Object.entries(CATEGORIES)) {
+          try {
+            await processCategory(filename, filters);
+            // slight delay to avoid overloading Overpass
+            await delay(1000);
+          } catch (err) {
+            log(`   [!] Error processing ${filename}: ${err.message}`);
+          }
+        }
+
+        log("=== Export Finished. Download links are above. ===");
+        runBtn.disabled = false;
+        enableDownloadAllButton();
+      }
+
+      // ======================================================
+      // Event Listener
+      // ======================================================
+      runBtn.addEventListener("click", runExport);
+
+      // Get reference to download all button
+      const downloadAllBtn = document.getElementById("downloadAllBtn");
+
+      // Enable download all button after export is complete
+      function enableDownloadAllButton() {
+        downloadAllBtn.disabled = false;
+      }
+
+      // Download all files as a single ZIP
+      async function downloadAllFiles() {
+        log("=== Creating ZIP file with all CSVs ===");
+        const links = downloadsDiv.querySelectorAll("a.download-link");
+        
+        if (links.length === 0) {
+          log("[!] No files available to download. Run the export first.");
+          return;
+        }
+        
+        // Create new JSZip instance
+        const zip = new JSZip();
+        
+        // Add each CSV to the zip
+        for (let i = 0; i < links.length; i++) {
+          const link = links[i];
+          const filename = link.download;
+          log(`Adding ${filename} to ZIP (${i+1}/${links.length})`);
+          
+          // Fetch the blob from the object URL
+          const response = await fetch(link.href);
+          const blob = await response.blob();
+          
+          // Add file to zip
+          zip.file(filename, blob);
+        }
+        
+        // Generate the zip file
+        log("Generating ZIP file...");
+        const zipBlob = await zip.generateAsync({type: "blob"});
+        
+        // Create download link for the zip
+        const zipUrl = URL.createObjectURL(zipBlob);
+        const zipLink = document.createElement("a");
+        zipLink.href = zipUrl;
+        zipLink.download = "business_data.zip";
+        
+        // Trigger download
+        document.body.appendChild(zipLink);
+        zipLink.click();
+        document.body.removeChild(zipLink);
+        
+        log("=== ZIP file downloaded ===");
+      }
+
+      // Add event listener for download all button
+      downloadAllBtn.addEventListener("click", downloadAllFiles);
+
+      // Update radius values in the UI
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.radius').forEach(el => {
+          el.textContent = RADIUS_MILES;
+        });
+        document.querySelectorAll('.radius-meters').forEach(el => {
+          el.textContent = RADIUS;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
