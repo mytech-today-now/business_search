@@ -116,7 +116,31 @@
         "aerospace_aviation.csv":      [{ key: "aeroway" }],
         "coworking_spaces.csv":        [{ key: "office",   value: "coworking" }],
       };
-
+    const ADDITIONAL_CATEGORIES = {
+        "breweries.csv":          [{ key: "craft",   value: "brewery" }],
+        "wineries.csv":           [{ key: "craft",   value: "winery" }],
+        "distilleries.csv":       [{ key: "craft",   value: "distillery" }],
+        "cafes.csv":              [{ key: "amenity", value: "cafe" }],
+        "bars.csv":               [{ key: "amenity", value: "bar" }],
+        "pubs.csv":               [{ key: "amenity", value: "pub" }],
+        "nightclubs.csv":         [{ key: "amenity", value: "nightclub" }],
+        "cinemas.csv":            [{ key: "amenity", value: "cinema" }],
+        "art_galleries.csv":      [{ key: "tourism", value: "gallery" }],
+        "museums.csv":            [{ key: "tourism", value: "museum" }],
+        "bookstores.csv":         [{ key: "shop",    value: "books" }],
+        "hardware_stores.csv":    [{ key: "shop",    value: "hardware" }],
+        "electronics_stores.csv": [{ key: "shop",    value: "electronics" }],
+        "furniture_stores.csv":   [{ key: "shop",    value: "furniture" }],
+        "pet_stores.csv":         [{ key: "shop",    value: "pet" }],
+        "bakeries.csv":           [{ key: "shop",    value: "bakery" }],
+        "convenience_stores.csv": [{ key: "shop",    value: "convenience" }],
+        "grocery_stores.csv":     [{ key: "shop",    value: "supermarket" }],
+        "dry_cleaners.csv":       [{ key: "shop",    value: "laundry" }],
+        "printing_shops.csv":     [{ key: "shop",    value: "printing" }],
+        "tattoo_parlors.csv":     [{ key: "shop",    value: "tattoo" }],
+        "car_rental.csv":         [{ key: "amenity", value: "car_rental" }],
+        "fuel_stations.csv":      [{ key: "amenity", value: "fuel" }]
+    };
       const CSV_HEADER = [
         "Name",
         "Street Number",
