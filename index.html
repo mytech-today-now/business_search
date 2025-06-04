@@ -9,6 +9,21 @@
       font-family: Arial, sans-serif;
       margin: 2rem;
     }
+    /* Navigation styles */
+    .main-nav {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .main-nav a {
+      color: #004B8D;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem;
+    }
+    .main-nav a:hover {
+      text-decoration: underline;
+    }
     .categories-container {
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -149,11 +164,122 @@
       margin-top: 8px;
       font-weight: 500;
     }
+
+    /* STORY OF PAGE POPUP STYLES */
+    .hidden-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .visible-overlay {
+      display: flex;
+    }
+    .story-dialog {
+      background: #fff;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .story-header h2 {
+      margin: 0 0 1rem 0;
+      color: #004B8D; /* myTech.Today branded color */
+      font-size: 1.5rem;
+    }
+    .story-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .story-content ul {
+      padding-left: 1.5rem;
+    }
+    .story-content li {
+      margin-bottom: 0.75rem;
+    }
+    .signature-block {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+      font-weight: 500;
+    }
+    .signature-block a {
+      display: block;
+      margin-top: 0.25rem;
+      color: #004B8D;
+      text-decoration: none;
+    }
+    .signature-block a:hover {
+      text-decoration: underline;
+    }
+    .close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      color: #555;
+      cursor: pointer;
+    }
+    .close-btn:hover {
+      color: #000;
+    }
   </style>
   <!-- Add JSZip library in the head section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
+  <!-- STORY OF PAGE POPUP -->
+  <div id="pageStoryOverlay" class="hidden-overlay">
+    <div id="pageStoryDialog" class="story-dialog" tabindex="-1">
+      <button id="closePageStory" class="close-btn" aria-label="Close">&times;</button>
+      <header class="story-header">
+        <h2>The Story of This Page</h2>
+      </header>
+      <div class="story-content">
+        <ul>
+          <li>This page was originally described as a ChatGPT prompt: 
+            <a href="https://chatgpt.com/share/683fae9c-f324-8013-b4ba-b9b978770b26" target="_blank">prompt for ChatGPT</a>.</li>
+          <li>ChatGPT generated a suitable Python program to accomplish the task, but to avoid Python dependencies, the reply was refactored as an HTML page.</li>
+          <li>The resulting code was copy-and-pasted into VS Code and opened with <a href="https://www.augmentcode.com/" target="_blank">Augment</a>.</li>
+          <li>Within VS Code + Augment, this project was massaged and refactored multiple times.</li>
+          <li>The code was also pushed to GitHub: 
+            <a href="https://github.com/mytech-today-now/business_search" target="_blank">mytech-today-now/business_search</a>.</li>
+          <li>A separate ChatGPT prompt produced 35 business types that benefit from MSP services in Chicagoland; the reply was reformatted as a comma-separated list and re-fed into ChatGPT/Augment.</li>
+          <li>On June 1, 2025, the code was refactored 29 times using Augment (50 total prompts to generate and refine code). Additional prompts refined and improved the final version.</li>
+          <li>Finally, the entire codebase was fed back into ChatGPT for further prompt generation, then re-applied in Augment. This iterative AI-driven workflow has been an extremely effective way to "vibe code."</li>
+          <li>By comparison, 15 years ago I wrote this same program in C# over four weeks. The AI version took 1.5 days with almost zero manual effort.</li>
+        </ul>
+        <div class="signature-block">
+          Kyle Rode
+          <a href="https://mytech.today" target="_blank">myTech.Today</a>
+          <a href="tel:18477674914" target="_blank">(847) 767-4914</a>
+          <a href="mailto:sales@mytech.today" target="_blank">sales@mytech.today</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="main-nav">
+    <a href="#" id="openPageStory">The story of this Page</a>
+  </nav>
+  
   <h1>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h1>
   <p>
     This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data in a 
@@ -910,6 +1036,65 @@ out center tags;
         document.querySelectorAll('.radius-meters').forEach(el => {
           el.textContent = RADIUS;
         });
+      });
+    })();
+
+    // ======================================================
+    // "Story of This Page" Popup Logic
+    // ======================================================
+    (function() {
+      const openBtn = document.getElementById("openPageStory");
+      const overlay = document.getElementById("pageStoryOverlay");
+      const closeBtn = document.getElementById("closePageStory");
+      const dialog = document.getElementById("pageStoryDialog");
+
+      function openStory(e) {
+        if (e) e.preventDefault();
+        overlay.classList.remove("hidden-overlay");
+        overlay.classList.add("visible-overlay");
+        // trap focus on dialog
+        dialog.focus();
+      }
+
+      function closeStory() {
+        overlay.classList.remove("visible-overlay");
+        overlay.classList.add("hidden-overlay");
+        // Return focus to the opener button
+        openBtn.focus();
+      }
+
+      openBtn.addEventListener("click", openStory);
+      closeBtn.addEventListener("click", closeStory);
+
+      // Close on pressing Esc
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && overlay.classList.contains("visible-overlay")) {
+          closeStory();
+        }
+      });
+
+      // Close when clicking outside the dialog
+      overlay.addEventListener("click", function(e) {
+        if (e.target === overlay) {
+          closeStory();
+        }
+      });
+
+      // Trap focus inside the dialog when open
+      dialog.addEventListener("keydown", function(e) {
+        if (e.key === "Tab") {
+          const focusableElements = dialog.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       });
     })();
   </script>
