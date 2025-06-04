@@ -9,6 +9,41 @@
       font-family: Arial, sans-serif;
       margin: 2rem;
     }
+    .categories-container {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .categories-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .category-group {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+    .category-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .category-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 5px;
+    }
+    .category-item {
+      padding: 3px;
+    }
+    .actions {
+      margin: 20px 0;
+    }
     button {
       padding: 0.5rem 1rem;
       font-size: 1rem;
@@ -35,13 +70,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-  <h1>Export Businesses (<span class="radius">21.75</span> mi radius around 60010) as CSV</h1>
+  <h1>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h1>
   <p>
-    This page uses the Overpass API (OpenStreetMap) to fetch business data in a <span class="radius">21.75</span> mi (<span class="radius-meters">35000</span>m) radius around ZIP 60010 (Barrington, IL).
-    Click “Run Export” to generate separate CSVs for each category. No API key is required.
+    This page uses the Overpass API (OpenStreetMap) to fetch business data in a 
+    <input type="number" id="radiusMiles" value="30" min="1" max="100" style="width: 60px;"> mi 
+    (<span id="radiusMeters">48280</span>m) radius around ZIP 
+    <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" style="width: 70px;">.
+    Select categories below and click "Run Export" to generate CSVs. No API key is required.
   </p>
-  <button id="runBtn">Run Export</button>
-  <button id="downloadAllBtn" disabled>Download All as ZIP</button>
+  
+  <div class="categories-container">
+    <div class="categories-header">
+      <label><input type="checkbox" id="selectAllCategories"> Select/Unselect All Categories</label>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <label><input type="checkbox" class="select-category" data-category="main"> Select/Unselect Main Categories</label>
+      </div>
+      <div class="category-items" id="mainCategories"></div>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <label><input type="checkbox" class="select-category" data-category="additional"> Select/Unselect Additional Categories</label>
+      </div>
+      <div class="category-items" id="additionalCategories"></div>
+    </div>
+  </div>
+  
+  <div class="actions">
+    <button id="runBtn">Run Export</button>
+    <button id="downloadAllBtn" disabled>Download All as ZIP</button>
+  </div>
 
   <div id="log"></div>
   <div id="downloads"></div>
@@ -51,13 +112,44 @@
       // ======================================================
       // Configuration
       // ======================================================
-      // Center of ZIP 60010 (Barrington, IL)
-      const LAT = 42.1397;
-      const LNG = -88.1466;
-      // 21.75 miles = 35000 meters (1 mile ≈ 1609.34 meters)
-      const RADIUS = 47000;
-      const RADIUS_MILES = Math.round((RADIUS / 1609.34) * 100) / 100; // Convert to miles with 2 decimal places
-
+      // Default values
+      let LAT = 42.1397;
+      let LNG = -88.1466;
+      let RADIUS = 48280; // 30 miles in meters
+      let RADIUS_MILES = 30;
+      let ZIP_CODE = "60010";
+      
+      // Conversion factor: 1 mile ≈ 1609.34 meters
+      const MILES_TO_METERS = 1609.34;
+      
+      // DOM elements for radius and ZIP inputs
+      const radiusMilesInput = document.getElementById("radiusMiles");
+      const radiusMetersSpan = document.getElementById("radiusMeters");
+      const zipCodeInput = document.getElementById("zipCode");
+      const radiusDisplay = document.getElementById("radiusDisplay");
+      const zipDisplay = document.getElementById("zipDisplay");
+      
+      // Update radius in meters when miles input changes
+      radiusMilesInput.addEventListener("input", function() {
+        RADIUS_MILES = parseFloat(this.value) || 30;
+        RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
+        radiusMetersSpan.textContent = RADIUS;
+        radiusDisplay.textContent = RADIUS_MILES;
+      });
+      
+      // Update ZIP code display when input changes
+      zipCodeInput.addEventListener("input", function() {
+        ZIP_CODE = this.value;
+        zipDisplay.textContent = ZIP_CODE;
+        // Note: In a real application, you would want to validate the ZIP
+        // and possibly look up the coordinates using a geocoding service
+      });
+      
+      // Initialize with default values
+      radiusMilesInput.value = RADIUS_MILES;
+      radiusMetersSpan.textContent = RADIUS;
+      zipCodeInput.value = ZIP_CODE;
+      
       /**
        * Each key is the CSV filename.
        * Each value is an Overpass filter clause (field, value) or a compound filter.
@@ -161,6 +253,111 @@
       const runBtn = document.getElementById("runBtn");
       const logDiv = document.getElementById("log");
       const downloadsDiv = document.getElementById("downloads");
+      const selectAllCategoriesCheckbox = document.getElementById("selectAllCategories");
+      const mainCategoriesContainer = document.getElementById("mainCategories");
+      const additionalCategoriesContainer = document.getElementById("additionalCategories");
+      
+      // ======================================================
+      // Initialize Category Checkboxes
+      // ======================================================
+      function initializeCategoryCheckboxes() {
+        // Sort categories alphabetically
+        const sortedMainCategories = Object.entries(CATEGORIES).sort((a, b) => 
+          a[0].localeCompare(b[0])
+        );
+        
+        const sortedAdditionalCategories = Object.entries(ADDITIONAL_CATEGORIES).sort((a, b) => 
+          a[0].localeCompare(b[0])
+        );
+        
+        // Populate main categories
+        sortedMainCategories.forEach(([filename]) => {
+          const displayName = filename.replace('.csv', '').replace(/_/g, ' ');
+          const item = document.createElement('div');
+          item.className = 'category-item';
+          item.innerHTML = `
+            <label>
+              <input type="checkbox" class="category-checkbox" data-group="main" data-filename="${filename}">
+              ${displayName}
+            </label>
+          `;
+          mainCategoriesContainer.appendChild(item);
+        });
+        
+        // Populate additional categories
+        sortedAdditionalCategories.forEach(([filename]) => {
+          const displayName = filename.replace('.csv', '').replace(/_/g, ' ');
+          const item = document.createElement('div');
+          item.className = 'category-item';
+          item.innerHTML = `
+            <label>
+              <input type="checkbox" class="category-checkbox" data-group="additional" data-filename="${filename}">
+              ${displayName}
+            </label>
+          `;
+          additionalCategoriesContainer.appendChild(item);
+        });
+        
+        // Set up event listeners for checkbox selection
+        setupCheckboxEventListeners();
+      }
+      
+      // ======================================================
+      // Setup Checkbox Event Listeners
+      // ======================================================
+      function setupCheckboxEventListeners() {
+        // Select all categories
+        selectAllCategoriesCheckbox.addEventListener('change', function() {
+          const isChecked = this.checked;
+          document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+          });
+          document.querySelectorAll('.select-category').forEach(checkbox => {
+            checkbox.checked = isChecked;
+          });
+        });
+        
+        // Select category groups
+        document.querySelectorAll('.select-category').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            const category = this.dataset.category;
+            const isChecked = this.checked;
+            document.querySelectorAll(`.category-checkbox[data-group="${category}"]`).forEach(cb => {
+              cb.checked = isChecked;
+            });
+            updateSelectAllCheckbox();
+          });
+        });
+        
+        // Individual checkboxes
+        document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            updateCategoryGroupCheckbox(this.dataset.group);
+            updateSelectAllCheckbox();
+          });
+        });
+      }
+      
+      // Update category group checkbox based on individual selections
+      function updateCategoryGroupCheckbox(group) {
+        const groupCheckbox = document.querySelector(`.select-category[data-category="${group}"]`);
+        const groupItems = document.querySelectorAll(`.category-checkbox[data-group="${group}"]`);
+        const allChecked = Array.from(groupItems).every(cb => cb.checked);
+        const someChecked = Array.from(groupItems).some(cb => cb.checked);
+        
+        groupCheckbox.checked = allChecked;
+        groupCheckbox.indeterminate = someChecked && !allChecked;
+      }
+      
+      // Update the "Select All" checkbox based on all selections
+      function updateSelectAllCheckbox() {
+        const allCheckboxes = document.querySelectorAll('.category-checkbox');
+        const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+        const someChecked = Array.from(allCheckboxes).some(cb => cb.checked);
+        
+        selectAllCategoriesCheckbox.checked = allChecked;
+        selectAllCategoriesCheckbox.indeterminate = someChecked && !allChecked;
+      }
 
       // ======================================================
       // Logging Utility
@@ -345,18 +542,29 @@ out center tags;
       }
 
       // ======================================================
-      // Main Runner: iterate categories sequentially
+      // Main Runner: iterate selected categories sequentially
       // ======================================================
       async function runExport() {
         // Clear log and download links
         logDiv.textContent = "";
         downloadsDiv.innerHTML = "";
         
+        // Get selected categories
+        const selectedCheckboxes = document.querySelectorAll('.category-checkbox:checked');
+        if (selectedCheckboxes.length === 0) {
+          log("[!] No categories selected. Please select at least one category.");
+          return;
+        }
+        
         runBtn.disabled = true;
         downloadAllBtn.disabled = true;
         log("=== Export Started (Overpass) ===");
 
-        for (const [filename, filters] of Object.entries(CATEGORIES)) {
+        for (const checkbox of selectedCheckboxes) {
+          const filename = checkbox.dataset.filename;
+          const group = checkbox.dataset.group;
+          const filters = group === 'main' ? CATEGORIES[filename] : ADDITIONAL_CATEGORIES[filename];
+          
           try {
             await processCategory(filename, filters);
             // slight delay to avoid overloading Overpass
@@ -370,6 +578,9 @@ out center tags;
         runBtn.disabled = false;
         enableDownloadAllButton();
       }
+
+      // Initialize the UI
+      initializeCategoryCheckboxes();
 
       // ======================================================
       // Event Listener
