@@ -21,25 +21,52 @@
       padding-bottom: 10px;
       border-bottom: 1px solid #eee;
     }
-    .category-group {
-      border: 1px solid #ddd;
+    .key-groups-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .key-group {
+      border: 1px solid #e5e5e5;
       border-radius: 4px;
-      margin-bottom: 10px;
-      padding: 10px;
+      padding: 8px;
+      background-color: #f9f9f9;
+      flex: 1 0 300px;
+      max-width: 400px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .category-header {
+    .key-header {
       font-weight: bold;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
       border-bottom: 1px solid #eee;
+      color: #555;
     }
-    .category-items {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 5px;
+    .key-items {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .key-items.multi-column {
+      column-count: 2;
+      column-gap: 10px;
     }
     .category-item {
       padding: 3px;
+      font-size: 0.9rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .category-item label {
+      display: flex;
+      align-items: flex-start;
+    }
+    .category-item input {
+      margin-right: 5px;
+      margin-top: 3px;
     }
     .actions {
       margin: 20px 0;
@@ -83,20 +110,7 @@
     <div class="categories-header">
       <label><input type="checkbox" id="selectAllCategories"> Select/Unselect All Categories</label>
     </div>
-    
-    <div class="category-group">
-      <div class="category-header">
-        <label><input type="checkbox" class="select-category" data-category="main"> Select/Unselect Main Categories</label>
-      </div>
-      <div class="category-items" id="mainCategories"></div>
-    </div>
-    
-    <div class="category-group">
-      <div class="category-header">
-        <label><input type="checkbox" class="select-category" data-category="additional"> Select/Unselect Additional Categories</label>
-      </div>
-      <div class="category-items" id="additionalCategories"></div>
-    </div>
+    <div class="category-items" id="allCategories"></div>
   </div>
   
   <div class="actions">
@@ -254,52 +268,108 @@
       const logDiv = document.getElementById("log");
       const downloadsDiv = document.getElementById("downloads");
       const selectAllCategoriesCheckbox = document.getElementById("selectAllCategories");
-      const mainCategoriesContainer = document.getElementById("mainCategories");
-      const additionalCategoriesContainer = document.getElementById("additionalCategories");
+      const allCategoriesContainer = document.getElementById("allCategories");
+      
+      // ======================================================
+      // Merge all categories into one object
+      // ======================================================
+      const ALL_CATEGORIES = {
+        ...CATEGORIES,
+        ...ADDITIONAL_CATEGORIES
+      };
       
       // ======================================================
       // Initialize Category Checkboxes
       // ======================================================
       function initializeCategoryCheckboxes() {
-        // Sort categories alphabetically
-        const sortedMainCategories = Object.entries(CATEGORIES).sort((a, b) => 
-          a[0].localeCompare(b[0])
-        );
+        // Group categories by their key
+        const categoriesByKey = groupCategoriesByKey(ALL_CATEGORIES);
         
-        const sortedAdditionalCategories = Object.entries(ADDITIONAL_CATEGORIES).sort((a, b) => 
-          a[0].localeCompare(b[0])
-        );
-        
-        // Populate main categories
-        sortedMainCategories.forEach(([filename]) => {
-          const displayName = filename.replace('.csv', '').replace(/_/g, ' ');
-          const item = document.createElement('div');
-          item.className = 'category-item';
-          item.innerHTML = `
-            <label>
-              <input type="checkbox" class="category-checkbox" data-group="main" data-filename="${filename}">
-              ${displayName}
-            </label>
-          `;
-          mainCategoriesContainer.appendChild(item);
-        });
-        
-        // Populate additional categories
-        sortedAdditionalCategories.forEach(([filename]) => {
-          const displayName = filename.replace('.csv', '').replace(/_/g, ' ');
-          const item = document.createElement('div');
-          item.className = 'category-item';
-          item.innerHTML = `
-            <label>
-              <input type="checkbox" class="category-checkbox" data-group="additional" data-filename="${filename}">
-              ${displayName}
-            </label>
-          `;
-          additionalCategoriesContainer.appendChild(item);
-        });
+        // Populate categories by key
+        populateCategoriesByKey(categoriesByKey, allCategoriesContainer);
         
         // Set up event listeners for checkbox selection
         setupCheckboxEventListeners();
+      }
+      
+      // Group categories by their key (amenity, shop, office, etc.)
+      function groupCategoriesByKey(categoriesObj) {
+        const groupedCategories = {};
+        
+        Object.entries(categoriesObj).forEach(([filename, filters]) => {
+          // Use the first filter's key as the group key
+          const groupKey = filters[0].key;
+          
+          if (!groupedCategories[groupKey]) {
+            groupedCategories[groupKey] = [];
+          }
+          
+          groupedCategories[groupKey].push({
+            filename,
+            filters
+          });
+        });
+        
+        // Sort the keys alphabetically
+        return Object.fromEntries(
+          Object.entries(groupedCategories).sort((a, b) => a[0].localeCompare(b[0]))
+        );
+      }
+      
+      // Populate categories grouped by key
+      function populateCategoriesByKey(groupedCategories, container) {
+        // Create a flex container for all key groups
+        const keyGroupsContainer = document.createElement('div');
+        keyGroupsContainer.className = 'key-groups-container';
+        container.appendChild(keyGroupsContainer);
+        
+        Object.entries(groupedCategories).forEach(([key, categories]) => {
+          // Create a group for this key
+          const keyGroup = document.createElement('div');
+          keyGroup.className = 'key-group';
+          
+          // Create header for this key
+          const keyHeader = document.createElement('div');
+          keyHeader.className = 'key-header';
+          keyHeader.innerHTML = `
+            <label>
+              <input type="checkbox" class="select-key" data-key="${key}">
+              ${key.charAt(0).toUpperCase() + key.slice(1)} (${categories.length})
+            </label>
+          `;
+          keyGroup.appendChild(keyHeader);
+          
+          // Create container for items in this key
+          const keyItems = document.createElement('div');
+          keyItems.className = 'key-items';
+          
+          // Add multi-column class if there are more than 5 items
+          if (categories.length > 5) {
+            keyItems.classList.add('multi-column');
+          }
+          
+          // Sort categories alphabetically within this key
+          categories.sort((a, b) => a.filename.localeCompare(b.filename));
+          
+          // Add each category in this key
+          categories.forEach(({ filename }) => {
+            const displayName = filename.replace('.csv', '').replace(/_/g, ' ');
+            const item = document.createElement('div');
+            item.className = 'category-item';
+            item.innerHTML = `
+              <label>
+                <input type="checkbox" class="category-checkbox" 
+                       data-key="${key}" 
+                       data-filename="${filename}">
+                <span>${displayName}</span>
+              </label>
+            `;
+            keyItems.appendChild(item);
+          });
+          
+          keyGroup.appendChild(keyItems);
+          keyGroupsContainer.appendChild(keyGroup);
+        });
       }
       
       // ======================================================
@@ -312,19 +382,21 @@
           document.querySelectorAll('.category-checkbox').forEach(checkbox => {
             checkbox.checked = isChecked;
           });
-          document.querySelectorAll('.select-category').forEach(checkbox => {
+          document.querySelectorAll('.select-key').forEach(checkbox => {
             checkbox.checked = isChecked;
           });
         });
         
-        // Select category groups
-        document.querySelectorAll('.select-category').forEach(checkbox => {
+        // Select key groups (amenity, shop, etc.)
+        document.querySelectorAll('.select-key').forEach(checkbox => {
           checkbox.addEventListener('change', function() {
-            const category = this.dataset.category;
+            const key = this.dataset.key;
             const isChecked = this.checked;
-            document.querySelectorAll(`.category-checkbox[data-group="${category}"]`).forEach(cb => {
+            
+            document.querySelectorAll(`.category-checkbox[data-key="${key}"]`).forEach(cb => {
               cb.checked = isChecked;
             });
+            
             updateSelectAllCheckbox();
           });
         });
@@ -332,21 +404,22 @@
         // Individual checkboxes
         document.querySelectorAll('.category-checkbox').forEach(checkbox => {
           checkbox.addEventListener('change', function() {
-            updateCategoryGroupCheckbox(this.dataset.group);
+            updateKeyGroupCheckbox(this.dataset.key);
             updateSelectAllCheckbox();
           });
         });
       }
       
-      // Update category group checkbox based on individual selections
-      function updateCategoryGroupCheckbox(group) {
-        const groupCheckbox = document.querySelector(`.select-category[data-category="${group}"]`);
-        const groupItems = document.querySelectorAll(`.category-checkbox[data-group="${group}"]`);
-        const allChecked = Array.from(groupItems).every(cb => cb.checked);
-        const someChecked = Array.from(groupItems).some(cb => cb.checked);
+      // Update key group checkbox based on individual selections
+      function updateKeyGroupCheckbox(key) {
+        const keyCheckbox = document.querySelector(`.select-key[data-key="${key}"]`);
+        const keyItems = document.querySelectorAll(`.category-checkbox[data-key="${key}"]`);
         
-        groupCheckbox.checked = allChecked;
-        groupCheckbox.indeterminate = someChecked && !allChecked;
+        const allChecked = Array.from(keyItems).every(cb => cb.checked);
+        const someChecked = Array.from(keyItems).some(cb => cb.checked);
+        
+        keyCheckbox.checked = allChecked;
+        keyCheckbox.indeterminate = someChecked && !allChecked;
       }
       
       // Update the "Select All" checkbox based on all selections
@@ -562,8 +635,7 @@ out center tags;
 
         for (const checkbox of selectedCheckboxes) {
           const filename = checkbox.dataset.filename;
-          const group = checkbox.dataset.group;
-          const filters = group === 'main' ? CATEGORIES[filename] : ADDITIONAL_CATEGORIES[filename];
+          const filters = ALL_CATEGORIES[filename];
           
           try {
             await processCategory(filename, filters);
