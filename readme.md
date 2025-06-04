@@ -1,4 +1,3 @@
-````markdown
 # Export Businesses Using Overpass (No Google API)
 
 A web-based tool to generate mailing lists of potential clients within a specified geographic radius, built and maintained by [myTech.Today](https://mytech.today), an MSP in Illinois.
@@ -504,4 +503,3 @@ Below is a consolidated list of all **preset categories** (filename → OSM filt
 ---
 
 Thank you for using **Export Businesses Using Overpass**. We hope this tool helps you quickly build mailing lists of potential clients. For further assistance, please reach out to [myTech.Today](https://mytech.today).
-````
