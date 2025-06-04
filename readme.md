@@ -23,7 +23,7 @@ This application page allows users to:
 
 1. **User Input**  
    - User specifies a ZIP code (default: 60010, Barrington, IL) and a radius in miles (default: 30 mi).  
-   - The page uses a (hardcoded) latitude/longitude lookup for the default ZIP code. In a production environment, this could be replaced with a geocoding service to validate and translate any valid ZIP code to coordinates.
+   - The page uses the Census Geocoding API to convert ZIP codes to latitude/longitude coordinates automatically.
 
 2. **Category Selection**  
    - A list of checkboxes is generated from a JavaScript object called `CATEGORIES` (preset categories) and `ADDITIONAL_CATEGORIES`.  
@@ -99,6 +99,9 @@ This application page allows users to:
   - DOM manipulation, event handling, async/await for fetch requests, modular IIFEs (Immediately Invoked Function Expressions).
 - **OpenStreetMap Overpass API**  
   - No authentication—simply POST Overpass QL to `https://overpass-api.de/api/interpreter`.
+- **Census Geocoding API**
+  - Free geocoding service to convert ZIP codes to coordinates.
+  - No API key required—uses `https://geocoding.geo.census.gov/geocoder/`.
 - **JSZip**  
   - Client-side ZIP generation (v3.10.1 via CDN).
 - **LocalStorage**  
@@ -420,9 +423,10 @@ Below is a consolidated list of all **preset categories** (filename → OSM filt
 
 4. **Error Handling & Validation**  
    - Overpass API requests use `try/catch` to log errors per category.  
-   - ZIP code input is a plain text field with `pattern="[0-9]{5}"`. There’s no real geocoding fallback if the user enters an invalid ZIP. In a production version:
-     - Integrate a simple geocoding service (e.g., Mapbox, Google Maps Geocoding, or a free USPS API) to translate any 5-digit ZIP to coordinates.  
-     - Display a user-friendly error if coordinates are unavailable.
+   - ZIP code input is validated with `pattern="[0-9]{5}"` and geocoded using the Census Geocoding API:
+     - When a valid 5-digit ZIP is entered, coordinates are automatically fetched.
+     - User-friendly status messages indicate success or failure of geocoding.
+     - If geocoding fails, the application falls back to default coordinates with a clear error message.
 
 5. **Performance & Rate Limiting**  
    - The code imposes a 1,000 ms delay between Overpass queries to avoid Overpass server rate limits.  
@@ -472,9 +476,9 @@ Below is a consolidated list of all **preset categories** (filename → OSM filt
 
 ### Potential Next Steps & Improvements
 
-1. **Geocoding Integration**  
-   - Incorporate a free geocoding service (e.g., USPS, Mapbox) so that any valid 5-digit ZIP yields accurate coordinates automatically.  
-   - Provide user feedback (e.g., “Looking up coordinates for 90210…”) and handle invalid ZIP codes gracefully.
+1. ~~**Geocoding Integration**~~  
+   - ✓ Implemented: Census Geocoding API now automatically converts ZIP codes to coordinates.
+   - ✓ Implemented: User feedback shows geocoding status with clear success/error messages.
 
 2. **Batch Query Optimization**  
    - Combine multiple categories into a single Overpass call by OR’ing filter clauses when they share the same `key`.  
