@@ -48,11 +48,19 @@
       flex-wrap: wrap;
       max-height: 300px;
       overflow-y: auto;
-      padding-right: 5px;
     }
-    .key-items.multi-column {
+    .key-items.columns-1 {
+      column-count: 1;
+    }
+    .key-items.columns-2 {
       column-count: 2;
-      column-gap: 10px;
+    }
+    .key-items.columns-3 {
+      column-count: 3;
+    }
+    .key-items.scrollable {
+      max-height: 300px;
+      overflow-y: auto;
     }
     .category-item {
       padding: 3px;
@@ -92,6 +100,55 @@
       margin: 0.5rem 0;
       display: block;
     }
+    
+    /* Add Category Form Styles */
+    .add-category-form {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+    .add-category-form h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+    .add-category-form div {
+      margin-bottom: 10px;
+    }
+    .add-category-form input {
+      margin-right: 5px;
+      padding: 6px;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      width: 250px;
+    }
+    .add-category-form label {
+      font-weight: 500;
+      margin-right: 8px;
+      display: inline-block;
+      width: 220px;
+    }
+    .add-category-form button {
+      margin-top: 6px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .add-category-form button:hover {
+      background-color: #45a049;
+    }
+    .error {
+      color: #d32f2f;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      font-weight: 500;
+    }
   </style>
   <!-- Add JSZip library in the head section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -99,12 +156,31 @@
 <body>
   <h1>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h1>
   <p>
-    This page uses the Overpass API (OpenStreetMap) to fetch business data in a 
+    This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data in a 
     <input type="number" id="radiusMiles" value="30" min="1" max="100" style="width: 60px;"> mi 
     (<span id="radiusMeters">48280</span>m) radius around ZIP 
     <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" style="width: 70px;">.
     Select categories below and click "Run Export" to generate CSVs. No API key is required.
   </p>
+  
+  <!-- Add Category Form -->
+  <div class="add-category-form">
+    <h3>Add Custom Category</h3>
+    <div>
+      <label for="newKeyInput">Key (e.g. amenity, shop):</label>
+      <input type="text" id="newKeyInput">
+    </div>
+    <div>
+      <label for="newValueInput">Value (e.g. cafe, bakery):</label>
+      <input type="text" id="newValueInput">
+    </div>
+    <div>
+      <label for="newFilenameInput">Filename (must end with .csv):</label>
+      <input type="text" id="newFilenameInput">
+    </div>
+    <button id="addCategoryBtn">Add Category</button>
+    <div id="addCategoryError" class="error" style="display:none;"></div>
+  </div>
   
   <div class="categories-container">
     <div class="categories-header">
@@ -124,23 +200,47 @@
   <script>
     (function () {
       // ======================================================
+      // User Categories Storage Helpers
+      // ======================================================
+      function loadUserCategories() {
+        try {
+          const stored = localStorage.getItem("userCategories");
+          if (!stored) return {};
+          return JSON.parse(stored) || {};
+        } catch (err) {
+          console.error("Error loading user categories:", err);
+          return {};
+        }
+      }
+      
+      function saveUserCategories(userCategories) {
+        try {
+          localStorage.setItem("userCategories", JSON.stringify(userCategories));
+          return true;
+        } catch (err) {
+          console.error("Error saving user categories:", err);
+          return false;
+        }
+      }
+      
+      // ======================================================
       // Configuration
       // ======================================================
-      // Default values
-      let LAT = 42.1397;
-      let LNG = -88.1466;
-      let RADIUS = 48280; // 30 miles in meters
-      let RADIUS_MILES = 30;
+      // Default coordinates for ZIP 60010 (Barrington, IL)
+      let LAT = 42.1543;
+      let LNG = -88.1362;
       let ZIP_CODE = "60010";
       
-      // Conversion factor: 1 mile ≈ 1609.34 meters
+      // Default radius: 30 miles
       const MILES_TO_METERS = 1609.34;
+      let RADIUS_MILES = 30;
+      let RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
       
-      // DOM elements for radius and ZIP inputs
+      // DOM elements for radius and ZIP
       const radiusMilesInput = document.getElementById("radiusMiles");
       const radiusMetersSpan = document.getElementById("radiusMeters");
-      const zipCodeInput = document.getElementById("zipCode");
       const radiusDisplay = document.getElementById("radiusDisplay");
+      const zipCodeInput = document.getElementById("zipCode");
       const zipDisplay = document.getElementById("zipDisplay");
       
       // Update radius in meters when miles input changes
@@ -269,19 +369,36 @@
       const downloadsDiv = document.getElementById("downloads");
       const selectAllCategoriesCheckbox = document.getElementById("selectAllCategories");
       const allCategoriesContainer = document.getElementById("allCategories");
+      const downloadAllBtn = document.getElementById("downloadAllBtn");
+      
+      // Add Category Form Elements
+      const newKeyInput = document.getElementById("newKeyInput");
+      const newValueInput = document.getElementById("newValueInput");
+      const newFilenameInput = document.getElementById("newFilenameInput");
+      const addCategoryBtn = document.getElementById("addCategoryBtn");
+      const addCategoryError = document.getElementById("addCategoryError");
       
       // ======================================================
-      // Merge all categories into one object
+      // Build All Categories (including user-defined ones)
       // ======================================================
-      const ALL_CATEGORIES = {
-        ...CATEGORIES,
-        ...ADDITIONAL_CATEGORIES
-      };
+      function buildAllCategories() {
+        return {
+          ...CATEGORIES,
+          ...ADDITIONAL_CATEGORIES,
+          ...loadUserCategories()
+        };
+      }
       
       // ======================================================
       // Initialize Category Checkboxes
       // ======================================================
       function initializeCategoryCheckboxes() {
+        // Clear existing categories
+        allCategoriesContainer.innerHTML = "";
+        
+        // Build all categories (including user-defined ones)
+        const ALL_CATEGORIES = buildAllCategories();
+        
         // Group categories by their key
         const categoriesByKey = groupCategoriesByKey(ALL_CATEGORIES);
         
@@ -343,9 +460,18 @@
           const keyItems = document.createElement('div');
           keyItems.className = 'key-items';
           
-          // Add multi-column class if there are more than 5 items
-          if (categories.length > 5) {
-            keyItems.classList.add('multi-column');
+          // Determine number of columns based on item count
+          if (categories.length <= 9) {
+            keyItems.classList.add('columns-1');
+          } else if (categories.length <= 18) {
+            keyItems.classList.add('columns-2');
+          } else {
+            keyItems.classList.add('columns-3');
+          }
+          
+          // Add scrollbar if more than 27 items
+          if (categories.length > 27) {
+            keyItems.classList.add('scrollable');
           }
           
           // Sort categories alphabetically within this key
@@ -371,6 +497,67 @@
           keyGroupsContainer.appendChild(keyGroup);
         });
       }
+      
+      // ======================================================
+      // Add New Category
+      // ======================================================
+      function addNewCategory() {
+        // Get input values
+        const key = newKeyInput.value.trim();
+        const value = newValueInput.value.trim();
+        const filename = newFilenameInput.value.trim();
+        
+        // Validate inputs
+        if (!key || !value || !filename) {
+          showError("All fields are required.");
+          return;
+        }
+        
+        if (!filename.endsWith(".csv")) {
+          showError("Filename must end with .csv.");
+          return;
+        }
+        
+        // Check if filename already exists
+        const existing = buildAllCategories();
+        if (existing[filename]) {
+          showError("Filename already exists; choose a different name.");
+          return;
+        }
+        
+        // Add to user categories
+        const userCategories = loadUserCategories();
+        userCategories[filename] = [{ key, value }];
+        saveUserCategories(userCategories);
+        
+        // Clear form
+        newKeyInput.value = "";
+        newValueInput.value = "";
+        newFilenameInput.value = "";
+        hideError();
+        
+        // Refresh categories
+        initializeCategoryCheckboxes();
+        
+        // Show success message
+        log(`Added new category: ${filename} with filter ["${key}"="${value}"]`);
+      }
+      
+      function showError(message) {
+        addCategoryError.textContent = message;
+        addCategoryError.style.display = "block";
+      }
+      
+      function hideError() {
+        addCategoryError.textContent = "";
+        addCategoryError.style.display = "none";
+      }
+      
+      // Add event listener for the Add Category button
+      addCategoryBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        addNewCategory();
+      });
       
       // ======================================================
       // Setup Checkbox Event Listeners
@@ -632,6 +819,9 @@ out center tags;
         runBtn.disabled = true;
         downloadAllBtn.disabled = true;
         log("=== Export Started (Overpass) ===");
+        
+        // Get fresh merged categories including user-defined ones
+        const ALL_CATEGORIES = buildAllCategories();
 
         for (const checkbox of selectedCheckboxes) {
           const filename = checkbox.dataset.filename;
@@ -658,9 +848,6 @@ out center tags;
       // Event Listener
       // ======================================================
       runBtn.addEventListener("click", runExport);
-
-      // Get reference to download all button
-      const downloadAllBtn = document.getElementById("downloadAllBtn");
 
       // Enable download all button after export is complete
       function enableDownloadAllButton() {
