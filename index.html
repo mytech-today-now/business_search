@@ -802,7 +802,7 @@
             "89109": { lat: 36.1147, lng: -115.1653 }, // Las Vegas, NV (The Strip)
             "89110": { lat: 36.1750, lng: -115.0531 }, // Las Vegas, NV
             "89113": { lat: 36.0869, lng: -115.2495 }, // Las Vegas, NV
-            "89117": { lat: 36.1425, lng: -115.2775 }, // Las Vegas, NV
+            "89117": { lat: 36.1425, lng: -115.2775 } // Las Vegas, NV
           };
           
           // Check if the ZIP code exists in the hardcoded mapping
@@ -858,6 +858,18 @@
       
       function saveUserCategories(userCategories) {
         try {
+          localStorage.setItem("userCategories", JSON.stringify(userCategories));
+          return true;
+        } catch (err) {
+          console.error("Error saving user categories:", err);
+          return false;
+        }
+      }
+      
+      // ======================================================
+      // Additional Categories
+      // ======================================================
+      const CATEGORIES = {
         "liquor_distributors.csv":     [{ key: "shop",     value: "alcohol" }],
         "manufacturers.csv":           [{ key: "industrial", value: "manufacturer" }],
         "hair_salons.csv":             [{ key: "shop",     value: "hairdresser" }],
