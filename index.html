@@ -77,20 +77,7 @@
       max-height: 300px;
       overflow-y: auto;
     }
-    .category-item {
-      padding: 3px;
-      font-size: 0.9rem;
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
-    .category-item label {
-      display: flex;
-      align-items: flex-start;
-    }
-    .category-item input {
-      margin-right: 5px;
-      margin-top: 3px;
-    }
+
     .actions {
       margin: 20px 0;
     }
@@ -116,53 +103,120 @@
       display: block;
     }
     
-    /* Add Category Form Styles */
-    .add-category-form {
-      margin-bottom: 20px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #fafafa;
+    /* Key Header and Inline Add Styles */
+    .key-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .add-category-form h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 1.1rem;
+    .key-header .add-new {
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #10a37f;
+      margin-left: 8px;
     }
-    .add-category-form div {
-      margin-bottom: 10px;
+    .key-header .add-new:hover {
+      color: #0e8c65;
     }
-    .add-category-form input {
+    .category-item {
+      position: relative;
+      padding: 3px;
+      font-size: 0.9rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .category-item label {
+      display: flex;
+      align-items: flex-start;
+    }
+    .category-item input[type="checkbox"] {
       margin-right: 5px;
-      padding: 6px;
+      margin-top: 3px;
+    }
+    .category-item .remove-btn {
+      display: none;
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      color: #d32f2f;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .category-item:hover .remove-btn {
+      display: block;
+    }
+    .category-item.new-entry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px;
+    }
+    .category-item.new-entry input[type="text"] {
+      flex: 1;
+      padding: 4px 6px;
       font-size: 0.9rem;
       border: 1px solid #ccc;
       border-radius: 3px;
-      width: 250px;
     }
-    .add-category-form label {
-      font-weight: 500;
-      margin-right: 8px;
-      display: inline-block;
-      width: 220px;
-    }
-    .add-category-form button {
-      margin-top: 6px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .add-category-form button:hover {
-      background-color: #45a049;
-    }
-    .error {
+    .category-item.new-entry .cancel-new {
       color: #d32f2f;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .category-item.new-entry .ask-chatgpt-link {
       font-size: 0.9rem;
+      text-decoration: none;
+      color: #004B8D;
+      margin-left: 6px;
+    }
+    .category-item.new-entry .ask-chatgpt-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Header Add Group Styles */
+    .categories-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .categories-header .add-group {
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #10a37f;
+      margin-left: 8px;
+    }
+    .categories-header .add-group:hover {
+      color: #0e8c65;
+    }
+    .header-new-entry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-top: 8px;
-      font-weight: 500;
+    }
+    .header-new-entry input[type="text"] {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .header-new-entry .cancel-new {
+      color: #d32f2f;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .header-new-entry .ask-chatgpt-link {
+      font-size: 0.9rem;
+      text-decoration: none;
+      color: #004B8D;
+    }
+    .header-new-entry .ask-chatgpt-link:hover {
+      text-decoration: underline;
     }
 
     /* STORY OF PAGE POPUP STYLES */
@@ -286,130 +340,18 @@
     <input type="number" id="radiusMiles" value="30" min="1" max="100" style="width: 60px;"> mi 
     (<span id="radiusMeters">48280</span>m) radius around ZIP 
     <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" style="width: 70px;">.
-    Select categories below and click "Run Export" to generate CSVs. No API key is required.
+    Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link" style="margin-left: 10px;">Ask ChatGPT for OSM tags</a>
   </p>
-  
-  <!-- Add Category Form -->
-  <div class="add-category-form">
-    <h3>Add Custom Category</h3>
-    <div>
-      <label for="newKeyInput">Key (e.g. amenity, shop):</label>
-      <input type="text" id="newKeyInput">
-    </div>
-    <div style="display: flex; align-items: center;">
-      <div style="flex-grow: 1;">
-        <label for="newValueInput">Value (e.g. cafe, bakery):</label>
-        <input type="text" id="newValueInput">
-      </div>
-      <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link" style="margin-left: 10px;">
-        Ask ChatGPT for OSM tags
-      </a>
-    </div>
-    <div>
-      <label for="newFilenameInput">Filename (must end with .csv):</label>
-      <input type="text" id="newFilenameInput">
-    </div>
-    <div style="margin-top: 10px;">
-      <button id="addCategoryBtn">Add Category</button>
-    </div>
-    <div id="addCategoryError" class="error" style="display:none;"></div>
-  </div>
-  <style>
-    .chatgpt-link {
-      color: #10a37f;
-      text-decoration: none;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-    }
-    .chatgpt-link:hover {
-      text-decoration: underline;
-    }
-    .chatgpt-link::before {
-      content: "";
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      margin-right: 5px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310a37f'%3E%3Cpath d='M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z'/%3E%3C/path%3E%3C/svg%3E");
-      background-size: contain;
-    }
-  </style>
 
-  <script>
-    (function() {
-      const askChatGPTLink = document.getElementById('askChatGPTLink');
-      const newValueInput = document.getElementById('newValueInput');
-      const newKeyInput = document.getElementById('newKeyInput');
-      const newFilenameInput = document.getElementById('newFilenameInput');
-      
-      function updateChatGPTLink() {
-        // Get the business category from the filename input
-        let businessCategory = '';
-        let businessValue = '';
-        
-        if (newKeyInput.value) {
-          businessCategory = newKeyInput.value.trim();
-        }
-
-        if (newValueInput.value) {
-          businessValue = newValueInput.value.trim();
-        }
-        
-        if (newFilenameInput.value) {
-          // If no key/value provided, extract from filename
-          if (!businessCategory && !businessValue) {
-            businessCategory = newFilenameInput.value
-              .replace('.csv', '')
-              .replace(/_/g, ' ');
-          }
-        }
-        
-        // Default if empty
-        if (!businessCategory) {
-          businessCategory = 'business category';
-        }
-        
-        // Create the prompt text
-        // const promptText = `What is the key and value to search for ${businessCategory}${businessValue ? ' : ' + businessValue : ''} in Overpass API (OpenStreetMap)?`;
-
-        const promptText = `Given a business description of "${businessCategory}${businessValue ? ' : ' + businessValue : ''}", what is the correct Overpass API (OpenStreetMap) key and value to use when searching for that business? Please reply with a list of valid key:value pairs only, without including any code examples.`;
-        console.log('Prompt text:', promptText);
-
-        // URL encode the prompt
-        const encodedPrompt = encodeURIComponent(promptText);
-        
-        // Set the href with the encoded prompt
-        askChatGPTLink.href = `https://chat.openai.com/?prompt=${encodedPrompt}`;
-      }
-      
-      // Make sure elements exist before adding event listeners
-      if (askChatGPTLink && newFilenameInput && newKeyInput && newValueInput) {
-        // Update the link when any input changes
-        newFilenameInput.addEventListener('input', updateChatGPTLink);
-        newKeyInput.addEventListener('input', updateChatGPTLink);
-        newValueInput.addEventListener('input', updateChatGPTLink);
-        
-        // Initialize the link
-        updateChatGPTLink();
-        
-        // Debug: Log to console when link is clicked
-        askChatGPTLink.addEventListener('click', function(e) {
-          console.log('ChatGPT link clicked, href:', this.href);
-        });
-      } else {
-        console.error('ChatGPT link elements not found');
-      }
-    })();
-  </script>
-  
   <div class="categories-container">
     <div class="categories-header">
       <label><input type="checkbox" id="selectAllCategories"> Select/Unselect All Categories</label>
+      <span class="add-group" title="Add New Group">+</span>
     </div>
+    <div id="headerNewEntryContainer"></div>
     <div class="category-items" id="allCategories"></div>
   </div>
-  
+
   <div class="actions">
     <button id="runBtn">Run Export</button>
     <button id="downloadAllBtn" disabled>Download All as ZIP</button>
@@ -443,19 +385,43 @@
           return false;
         }
       }
+
+      // ======================================================
+      // User Groups Storage Helpers
+      // ======================================================
+      function loadUserGroups() {
+        try {
+          const stored = localStorage.getItem("userGroups");
+          if (!stored) return [];
+          return JSON.parse(stored) || [];
+        } catch (err) {
+          console.error("Error loading user groups:", err);
+          return [];
+        }
+      }
+
+      function saveUserGroups(userGroups) {
+        try {
+          localStorage.setItem("userGroups", JSON.stringify(userGroups));
+          return true;
+        } catch (err) {
+          console.error("Error saving user groups:", err);
+          return false;
+        }
+      }
       
       // ======================================================
       // Configuration
       // ======================================================
-      // Default coordinates for ZIP 60010 (Barrington, IL)
-      let LAT = 42.1543;
-      let LNG = -88.1362;
-      let ZIP_CODE = "60010";
+      // Default coordinates for ZIP 60010 (Barrington, IL) - make global
+      window.LAT = 42.1543;
+      window.LNG = -88.1362;
+      window.ZIP_CODE = "60010";
 
-      // Default radius: 30 miles
+      // Default radius: 30 miles - make global
       const MILES_TO_METERS = 1609.34;
       let RADIUS_MILES = 30;
-      let RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
+      window.RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
 
       // DOM elements for radius and ZIP
       const radiusMilesInput = document.getElementById("radiusMiles");
@@ -470,8 +436,8 @@
       // Update radius in meters when miles input changes
       radiusMilesInput.addEventListener("input", function() {
         RADIUS_MILES = parseFloat(this.value) || 30;
-        RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
-        radiusMetersSpan.textContent = RADIUS;
+        window.RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
+        radiusMetersSpan.textContent = window.RADIUS;
         radiusDisplay.textContent = RADIUS_MILES;
       });
 
@@ -808,9 +774,9 @@
           // Check if the ZIP code exists in the hardcoded mapping
           if (zipCoordinates[zipCode]) {
             const { lat, lng } = zipCoordinates[zipCode];
-            LAT = lat;
-            LNG = lng;
-            statusMessage.textContent = `Coordinates found: ${LAT}, ${LNG}`;
+            window.LAT = lat;
+            window.LNG = lng;
+            statusMessage.textContent = `Coordinates found: ${window.LAT}, ${window.LNG}`;
             statusMessage.style.color = "#333";
             return { lat, lng };
           } else {
@@ -824,21 +790,7 @@
       }
     })();
   </script>
-  
-  <div class="categories-container">
-    <div class="categories-header">
-      <label><input type="checkbox" id="selectAllCategories"> Select/Unselect All Categories</label>
-    </div>
-    <div class="category-items" id="allCategories"></div>
-  </div>
-  
-  <div class="actions">
-    <button id="runBtn">Run Export</button>
-    <button id="downloadAllBtn" disabled>Download All as ZIP</button>
-  </div>
 
-  <div id="log"></div>
-  <div id="downloads"></div>
 
   <script>
     (function () {
@@ -862,6 +814,30 @@
           return true;
         } catch (err) {
           console.error("Error saving user categories:", err);
+          return false;
+        }
+      }
+
+      // ======================================================
+      // User Groups Storage Helpers
+      // ======================================================
+      function loadUserGroups() {
+        try {
+          const stored = localStorage.getItem("userGroups");
+          if (!stored) return [];
+          return JSON.parse(stored) || [];
+        } catch (err) {
+          console.error("Error loading user groups:", err);
+          return [];
+        }
+      }
+
+      function saveUserGroups(userGroups) {
+        try {
+          localStorage.setItem("userGroups", JSON.stringify(userGroups));
+          return true;
+        } catch (err) {
+          console.error("Error saving user groups:", err);
           return false;
         }
       }
@@ -961,13 +937,16 @@
       const selectAllCategoriesCheckbox = document.getElementById("selectAllCategories");
       const allCategoriesContainer = document.getElementById("allCategories");
       const downloadAllBtn = document.getElementById("downloadAllBtn");
-      
-      // Add Category Form Elements
-      const newKeyInput = document.getElementById("newKeyInput");
-      const newValueInput = document.getElementById("newValueInput");
-      const newFilenameInput = document.getElementById("newFilenameInput");
-      const addCategoryBtn = document.getElementById("addCategoryBtn");
-      const addCategoryError = document.getElementById("addCategoryError");
+
+      // ZIP code and radius elements (needed for runExport)
+      const zipCodeInput = document.getElementById("zipCode");
+      const zipDisplay = document.getElementById("zipDisplay");
+
+      // Header new entry container for adding groups
+      const headerNewEntryContainer = document.getElementById("headerNewEntryContainer");
+
+
+
       
       // ======================================================
       // Build All Categories (including user-defined ones)
@@ -978,6 +957,26 @@
           ...ADDITIONAL_CATEGORIES,
           ...loadUserCategories()
         };
+      }
+
+      // ======================================================
+      // Build All Groups (including user-defined ones)
+      // ======================================================
+      function buildAllGroups() {
+        // 1. Collect all built-in "key" group names:
+        const builtInKeys = new Set();
+        Object.values({ ...CATEGORIES, ...ADDITIONAL_CATEGORIES }).forEach(filters => {
+          filters.forEach(f => {
+            if (f.key) builtInKeys.add(f.key);
+          });
+        });
+        // 2. Get any user-defined group names:
+        const userGroups = loadUserGroups();
+        // 3. Merge built-in keys and userGroups (ensure unique):
+        return [
+          ...Array.from(builtInKeys),
+          ...userGroups.filter(g => !builtInKeys.has(g))
+        ];
       }
       
       // ======================================================
@@ -1003,21 +1002,29 @@
       // Group categories by their key (amenity, shop, office, etc.)
       function groupCategoriesByKey(categoriesObj) {
         const groupedCategories = {};
-        
+
         Object.entries(categoriesObj).forEach(([filename, filters]) => {
           // Use the first filter's key as the group key
           const groupKey = filters[0].key;
-          
+
           if (!groupedCategories[groupKey]) {
             groupedCategories[groupKey] = [];
           }
-          
+
           groupedCategories[groupKey].push({
             filename,
             filters
           });
         });
-        
+
+        // Ensure all user-defined groups appear even if they have no categories
+        const userGroups = loadUserGroups();
+        userGroups.forEach(groupKey => {
+          if (!groupedCategories[groupKey]) {
+            groupedCategories[groupKey] = [];
+          }
+        });
+
         // Sort the keys alphabetically
         return Object.fromEntries(
           Object.entries(groupedCategories).sort((a, b) => a[0].localeCompare(b[0]))
@@ -1044,6 +1051,7 @@
               <input type="checkbox" class="select-key" data-key="${key}">
               ${key.charAt(0).toUpperCase() + key.slice(1)} (${categories.length})
             </label>
+            <span class="add-new" data-key="${key}" title="Add New Category">+</span>
           `;
           keyGroup.appendChild(keyHeader);
           
@@ -1075,11 +1083,12 @@
             item.className = 'category-item';
             item.innerHTML = `
               <label>
-                <input type="checkbox" class="category-checkbox" 
-                       data-key="${key}" 
+                <input type="checkbox" class="category-checkbox"
+                       data-key="${key}"
                        data-filename="${filename}">
                 <span>${displayName}</span>
               </label>
+              <span class="remove-btn" title="Remove">&times;</span>
             `;
             keyItems.appendChild(item);
           });
@@ -1089,103 +1098,49 @@
         });
       }
       
-      // ======================================================
-      // Add New Category
-      // ======================================================
-      function addNewCategory() {
-        // Get input values
-        const key = newKeyInput.value.trim();
-        const value = newValueInput.value.trim();
-        const filename = newFilenameInput.value.trim();
-        
-        // Validate inputs
-        if (!key || !value || !filename) {
-          showError("All fields are required.");
-          return;
-        }
-        
-        if (!filename.endsWith(".csv")) {
-          showError("Filename must end with .csv.");
-          return;
-        }
-        
-        // Check if filename already exists
-        const existing = buildAllCategories();
-        if (existing[filename]) {
-          showError("Filename already exists; choose a different name.");
-          return;
-        }
-        
-        // Add to user categories
-        const userCategories = loadUserCategories();
-        userCategories[filename] = [{ key, value }];
-        saveUserCategories(userCategories);
-        
-        // Clear form
-        newKeyInput.value = "";
-        newValueInput.value = "";
-        newFilenameInput.value = "";
-        hideError();
-        
-        // Refresh categories
-        initializeCategoryCheckboxes();
-        
-        // Show success message
-        log(`Added new category: ${filename} with filter ["${key}"="${value}"]`);
-      }
-      
-      function showError(message) {
-        addCategoryError.textContent = message;
-        addCategoryError.style.display = "block";
-      }
-      
-      function hideError() {
-        addCategoryError.textContent = "";
-        addCategoryError.style.display = "none";
-      }
-      
-      // Add event listener for the Add Category button
-      addCategoryBtn.addEventListener("click", function(e) {
-        e.preventDefault();
-        addNewCategory();
-      });
+
       
       // ======================================================
       // Setup Checkbox Event Listeners
       // ======================================================
+      // Flag to track if main event listeners are set up
+      let mainEventListenersSetup = false;
+
       function setupCheckboxEventListeners() {
-        // Select all categories
-        selectAllCategoriesCheckbox.addEventListener('change', function() {
-          const isChecked = this.checked;
-          document.querySelectorAll('.category-checkbox').forEach(checkbox => {
-            checkbox.checked = isChecked;
-          });
-          document.querySelectorAll('.select-key').forEach(checkbox => {
-            checkbox.checked = isChecked;
-          });
-        });
-        
-        // Select key groups (amenity, shop, etc.)
-        document.querySelectorAll('.select-key').forEach(checkbox => {
-          checkbox.addEventListener('change', function() {
-            const key = this.dataset.key;
+        // Set up main event listener only once
+        if (!mainEventListenersSetup) {
+          selectAllCategoriesCheckbox.addEventListener('change', function() {
             const isChecked = this.checked;
-            
-            document.querySelectorAll(`.category-checkbox[data-key="${key}"]`).forEach(cb => {
-              cb.checked = isChecked;
+            document.querySelectorAll('.category-checkbox').forEach(checkbox => {
+              checkbox.checked = isChecked;
             });
-            
-            updateSelectAllCheckbox();
+            document.querySelectorAll('.select-key').forEach(checkbox => {
+              checkbox.checked = isChecked;
+            });
           });
-        });
-        
-        // Individual checkboxes
-        document.querySelectorAll('.category-checkbox').forEach(checkbox => {
-          checkbox.addEventListener('change', function() {
-            updateKeyGroupCheckbox(this.dataset.key);
-            updateSelectAllCheckbox();
+          mainEventListenersSetup = true;
+        }
+
+        // Use event delegation for key group checkboxes and individual checkboxes
+        // Remove any existing delegated listeners first
+        allCategoriesContainer.removeEventListener('change', handleCategoryChange);
+        allCategoriesContainer.addEventListener('change', handleCategoryChange);
+      }
+
+      function handleCategoryChange(e) {
+        if (e.target.classList.contains('select-key')) {
+          const key = e.target.dataset.key;
+          const isChecked = e.target.checked;
+
+          document.querySelectorAll(`.category-checkbox[data-key="${key}"]`).forEach(cb => {
+            cb.checked = isChecked;
           });
-        });
+
+          updateSelectAllCheckbox();
+        } else if (e.target.classList.contains('category-checkbox')) {
+          updateKeyGroupCheckbox(e.target.dataset.key);
+          updateSelectAllCheckbox();
+        }
       }
       
       // Update key group checkbox based on individual selections
@@ -1241,9 +1196,9 @@
         }).join("");
 
         // Get the current coordinates and radius (to ensure we use the latest values)
-        const currentLat = LAT;
-        const currentLng = LNG;
-        const currentRadius = RADIUS;
+        const currentLat = window.LAT;
+        const currentLng = window.LNG;
+        const currentRadius = window.RADIUS;
 
         // Around: RADIUS meters around LAT,LNG
         return `
@@ -1413,14 +1368,15 @@ out center tags;`;
         
         // Always update ZIP code and coordinates before processing
         const currentZip = zipCodeInput.value.trim();
-        if (currentZip !== ZIP_CODE) {
+        if (currentZip !== window.ZIP_CODE) {
           if (/^\d{5}$/.test(currentZip)) {
-            ZIP_CODE = currentZip;
-            zipDisplay.textContent = ZIP_CODE;
-            log(`Updating coordinates for ZIP code: ${ZIP_CODE}`);
-            await geocodeZipCode(ZIP_CODE);
+            window.ZIP_CODE = currentZip;
+            zipDisplay.textContent = window.ZIP_CODE;
+            log(`Updating coordinates for ZIP code: ${window.ZIP_CODE}`);
+            // Note: geocodeZipCode is in the first IIFE, so we can't call it directly
+            // The coordinates should be updated by the first IIFE's event listeners
           } else {
-            log(`[!] Invalid ZIP code format: ${currentZip}. Using previous ZIP: ${ZIP_CODE}`);
+            log(`[!] Invalid ZIP code format: ${currentZip}. Using previous ZIP: ${window.ZIP_CODE}`);
           }
         }
         
@@ -1449,8 +1405,185 @@ out center tags;`;
         enableDownloadAllButton();
       }
 
+      // ======================================================
+      // Setup Dynamic Add/Remove Functionality
+      // ======================================================
+      function setupDynamicAddRemove() {
+        // Delegate click on the "+" to insert a new-entry row
+        allCategoriesContainer.addEventListener('click', function(e) {
+          if (e.target.classList.contains('add-new')) {
+            // 1. Determine which key group we're in:
+            const key = e.target.dataset.key;  // e.g. "shop", "amenity", etc.
+            // 2. Locate its parent .key-group container and then the .key-items container:
+            const keyGroup = e.target.closest('.key-group');
+            const keyItems = keyGroup.querySelector('.key-items');
+
+            // 3. If there's already a .new-entry row, do nothing (prevent duplicates)
+            if (keyItems.querySelector('.category-item.new-entry')) return;
+
+            // 4. Create a new .category-item.new-entry DIV:
+            const newItem = document.createElement('div');
+            newItem.className = 'category-item new-entry';
+            newItem.innerHTML = `
+              <input type="text" class="new-category-input" placeholder="Enter new value">
+              <span class="cancel-new" title="Cancel">&times;</span>
+              <a href="#" class="ask-chatgpt-link" target="_blank" rel="noopener noreferrer">Ask ChatGPT for OSM tags</a>
+            `;
+            // 5. Prepend this newItem to keyItems so it appears at the top:
+            keyItems.prepend(newItem);
+
+            // 6. Grab references to the input field and the new "Ask ChatGPT" link:
+            const inputField = newItem.querySelector('.new-category-input');
+            const askLink = newItem.querySelector('.ask-chatgpt-link');
+
+            // 7. Focus the input right away:
+            inputField.focus();
+
+            // 8. Define a helper function updateChatGPTLink():
+            function updateChatGPTLink() {
+              const businessValue = inputField.value.trim();
+              let businessCategory = key;  // Always include the group's key
+              // Construct the prompt text to ask ChatGPT:
+              const promptText =
+                `Given a business description of "${businessCategory}` +
+                `${businessValue ? ' : ' + businessValue : ''}` +
+                `", what is the correct Overpass API (OpenStreetMap) key and value to use when searching for that business? ` +
+                `Please reply with a list of valid key:value pairs only, without including any code examples.`;
+              // URL-encode the prompt:
+              const encodedPrompt = encodeURIComponent(promptText);
+              // Set the askLink's href accordingly:
+              askLink.href = `https://chat.openai.com/?prompt=${encodedPrompt}`;
+            }
+
+            // 9. Bind inputField.addEventListener('input', updateChatGPTLink):
+            inputField.addEventListener('input', updateChatGPTLink);
+
+            // Initialize the ChatGPT link with the key only
+            updateChatGPTLink();
+
+            // 10. Handle keydown events on inputField:
+            inputField.addEventListener('keydown', function(evt) {
+              if (evt.key === 'Enter') {
+                // a) Grab and trim the new value:
+                const newValue = inputField.value.trim();
+                if (!newValue) return;  // don't proceed if empty
+
+                // b) Build a filename from newValue (underscores + .csv):
+                const filename = newValue.replace(/\s+/g, '_') + '.csv';
+
+                // c) Load userCategories from localStorage:
+                const userCategories = loadUserCategories();
+
+                // d) Prevent duplicates: if filename already exists in userCategories or built-in categories, alert:
+                if (userCategories[filename] || buildAllCategories()[filename]) {
+                  alert('Category already exists.');
+                  return;
+                }
+
+                // e) Otherwise, save to localStorage:
+                userCategories[filename] = [{ key, value: newValue }];
+                saveUserCategories(userCategories);
+
+                // f) Reinitialize the category list UI to reflect new addition:
+                initializeCategoryCheckboxes();
+              } else if (evt.key === 'Escape') {
+                // Remove the inline new-entry row without saving
+                newItem.remove();
+              }
+            });
+
+            // 11. Bind click on the cancel icon (.cancel-new) to remove newItem:
+            newItem.querySelector('.cancel-new').addEventListener('click', function() {
+              newItem.remove();
+            });
+          }
+        });
+
+        // Delegate click on "×" (remove-btn) to delete that category
+        allCategoriesContainer.addEventListener('click', function(e) {
+          if (e.target.classList.contains('remove-btn')) {
+            const itemDiv = e.target.closest('.category-item');
+            const filename = itemDiv.querySelector('.category-checkbox')?.dataset.filename;
+            if (filename && loadUserCategories()[filename]) {
+              const userCategories = loadUserCategories();
+              delete userCategories[filename];
+              saveUserCategories(userCategories);
+            }
+            itemDiv.remove();
+            updateKeyGroupCheckbox(itemDiv.querySelector('.category-checkbox')?.dataset.key);
+            updateSelectAllCheckbox();
+          }
+        });
+      }
+
+      // ======================================================
+      // Setup Dynamic Add/Remove Groups Functionality
+      // ======================================================
+      function setupDynamicAddRemoveGroups() {
+        // 1. Grab the "+" in the categories-header:
+        const addGroupBtn = document.querySelector(".categories-header .add-group");
+        // 2. Listen for clicks:
+        addGroupBtn.addEventListener('click', function() {
+          // a) Prevent multiple new-entry rows:
+          if (headerNewEntryContainer.querySelector('.header-new-entry')) return;
+          // b) Create the inline row:
+          const newEntryDiv = document.createElement('div');
+          newEntryDiv.className = 'header-new-entry';
+          newEntryDiv.innerHTML = `
+            <input type="text" class="new-group-input" placeholder="Enter new group name">
+            <span class="cancel-new" title="Cancel">&times;</span>
+            <a href="#" class="ask-chatgpt-link" target="_blank" rel="noopener noreferrer">Ask ChatGPT for OSM tags</a>
+          `;
+          headerNewEntryContainer.appendChild(newEntryDiv);
+          // c) Grab references:
+          const inputField = newEntryDiv.querySelector('.new-group-input');
+          const askLink = newEntryDiv.querySelector('.ask-chatgpt-link');
+          inputField.focus();
+          // d) Build a helper to update the ChatGPT link dynamically:
+          function updateGroupChatGPTLink() {
+            const groupValue = inputField.value.trim();
+            const promptText =
+              `Given a group description of "${groupValue}", ` +
+              `what is the correct Overpass API (OpenStreetMap) key and value ` +
+              `to use when searching for that group? ` +
+              `Please reply with a list of valid key:value pairs only, ` +
+              `without including any code examples.`;
+            const encodedPrompt = encodeURIComponent(promptText);
+            askLink.href = `https://chat.openai.com/?prompt=${encodedPrompt}`;
+          }
+          inputField.addEventListener('input', updateGroupChatGPTLink);
+          updateGroupChatGPTLink();
+          // e) Handle Enter/Escape keys:
+          inputField.addEventListener('keydown', function(evt) {
+            if (evt.key === 'Enter') {
+              const newGroupName = inputField.value.trim();
+              if (!newGroupName) return;
+              const userGroups = loadUserGroups();
+              // Prevent duplicates against built-in groups or existing userGroups
+              if (userGroups.includes(newGroupName) || buildAllGroups().includes(newGroupName)) {
+                alert('Group already exists.');
+                return;
+              }
+              userGroups.push(newGroupName);
+              saveUserGroups(userGroups);
+              // Re-render categories & groups:
+              headerNewEntryContainer.innerHTML = "";
+              initializeCategoryCheckboxes();
+            } else if (evt.key === 'Escape') {
+              newEntryDiv.remove();
+            }
+          });
+          // f) Bind the cancel icon:
+          newEntryDiv.querySelector('.cancel-new').addEventListener('click', function() {
+            newEntryDiv.remove();
+          });
+        });
+      }
+
       // Initialize the UI
       initializeCategoryCheckboxes();
+      setupDynamicAddRemove();
+      setupDynamicAddRemoveGroups();
 
       // ======================================================
       // Event Listener
