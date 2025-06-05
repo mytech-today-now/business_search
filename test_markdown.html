@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Parser Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            padding: 20px;
+        }
+        .test-input {
+            background: #f5f5f5;
+            padding: 10px;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .test-output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+        }
+        ul, ol {
+            margin: 0 0 1rem 0;
+            padding-left: 2rem;
+        }
+        li {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Markdown Parser Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Simple Numbered List</h2>
+        <div class="test-input" id="test1-input"></div>
+        <div class="test-output" id="test1-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Multi-line List Items</h2>
+        <div class="test-input" id="test2-input"></div>
+        <div class="test-output" id="test2-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Mixed Lists</h2>
+        <div class="test-input" id="test3-input"></div>
+        <div class="test-output" id="test3-output"></div>
+    </div>
+
+    <script>
+        // Copy the parseMarkdown function from the main file
+        function parseMarkdown(markdown) {
+            let html = markdown;
+
+            // First, extract and protect code blocks to prevent interference
+            const codeBlocks = [];
+            let codeBlockIndex = 0;
+
+            // Handle code blocks with language specifiers and without
+            html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+                const placeholder = `__CODE_BLOCK_${codeBlockIndex}__`;
+                // Escape HTML entities in code
+                const escapedCode = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                codeBlocks[codeBlockIndex] = `<pre><code>${escapedCode}</code></pre>`;
+                codeBlockIndex++;
+                return placeholder;
+            });
+
+            // Extract and protect inline code
+            const inlineCodes = [];
+            let inlineCodeIndex = 0;
+            html = html.replace(/`([^`\n]+)`/g, (match, code) => {
+                const placeholder = `__INLINE_CODE_${inlineCodeIndex}__`;
+                // Escape HTML entities in inline code
+                const escapedCode = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                inlineCodes[inlineCodeIndex] = `<code>${escapedCode}</code>`;
+                inlineCodeIndex++;
+                return placeholder;
+            });
+
+            // Convert headers (order matters - longest first)
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Convert bold and italic (be careful with order)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+
+            // Convert links - handle internal anchors differently
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+                if (url.startsWith('#')) {
+                    // Internal anchor link - use data attribute for custom handling
+                    return `<a href="${url}" class="internal-link" data-anchor="${url.substring(1)}">${text}</a>`;
+                } else {
+                    // External link - open in new tab
+                    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+                }
+            });
+
+            // Convert horizontal rules
+            html = html.replace(/^---$/gm, '<hr>');
+
+            // Split into sections and process
+            const sections = html.split(/\n\s*\n/);
+            const processedSections = [];
+
+            for (let section of sections) {
+                section = section.trim();
+                if (!section) continue;
+
+                // Skip if it's already HTML (headers, hr, etc.)
+                if (section.startsWith('<h') || section.startsWith('<hr') || section.includes('__CODE_BLOCK_')) {
+                    processedSections.push(section);
+                    continue;
+                }
+
+                // Handle lists - check for both top-level and indented list items
+                const lines = section.split('\n');
+                if (lines.some(line => {
+                    const trimmed = line.trim();
+                    const leadingSpaces = line.length - line.trimStart().length;
+                    return trimmed.match(/^[-*+]\s/) || trimmed.match(/^\d+\.\s/) ||
+                           (leadingSpaces > 0 && trimmed.match(/^[-*+]\s/));
+                })) {
+                    let listHtml = '';
+                    let currentList = null;
+                    let currentListItem = '';
+                    let inListItem = false;
+                    let nestedListHtml = '';
+                    let inNestedList = false;
+                    let nestedListType = null;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        const trimmed = line.trim();
+                        const leadingSpaces = line.length - line.trimStart().length;
+                        const nextLine = i < lines.length - 1 ? lines[i + 1] : '';
+                        const nextTrimmed = nextLine.trim();
+                        const nextLeadingSpaces = nextLine.length - nextLine.trimStart().length;
+
+                        // Check if this is a top-level list item (unordered)
+                        if (trimmed.match(/^[-*+]\s/) && leadingSpaces === 0) {
+                            // Close any nested list first
+                            if (inNestedList) {
+                                currentListItem += nestedListHtml + `</${nestedListType}>`;
+                                nestedListHtml = '';
+                                inNestedList = false;
+                                nestedListType = null;
+                            }
+
+                            // Close previous list item if exists
+                            if (inListItem && currentListItem) {
+                                listHtml += `<li>${currentListItem.trim()}</li>`;
+                                currentListItem = '';
+                            }
+
+                            // Switch to unordered list if needed
+                            if (currentList !== 'ul') {
+                                if (currentList) listHtml += `</${currentList}>`;
+                                listHtml += '<ul>';
+                                currentList = 'ul';
+                            }
+
+                            // Start new list item
+                            currentListItem = trimmed.substring(2).trim();
+                            inListItem = true;
+
+                        // Check if this is a top-level list item (ordered)
+                        } else if (trimmed.match(/^\d+\.\s/) && leadingSpaces === 0) {
+                            // Close any nested list first
+                            if (inNestedList) {
+                                currentListItem += nestedListHtml + `</${nestedListType}>`;
+                                nestedListHtml = '';
+                                inNestedList = false;
+                                nestedListType = null;
+                            }
+
+                            // Close previous list item if exists
+                            if (inListItem && currentListItem) {
+                                listHtml += `<li>${currentListItem.trim()}</li>`;
+                                currentListItem = '';
+                            }
+
+                            // Switch to ordered list if needed
+                            if (currentList !== 'ol') {
+                                if (currentList) listHtml += `</${currentList}>`;
+                                listHtml += '<ol>';
+                                currentList = 'ol';
+                            }
+
+                            // Start new list item
+                            currentListItem = trimmed.replace(/^\d+\.\s/, '').trim();
+                            inListItem = true;
+
+                        // Check if this is a nested/indented list item
+                        } else if (trimmed.match(/^[-*+]\s/) && leadingSpaces > 0 && inListItem) {
+                            // Start nested list if not already in one
+                            if (!inNestedList) {
+                                nestedListHtml = '<ul>';
+                                inNestedList = true;
+                                nestedListType = 'ul';
+                            }
+
+                            // Add nested list item
+                            nestedListHtml += `<li>${trimmed.substring(2).trim()}</li>`;
+
+                        // Check if this is a nested/indented numbered list item
+                        } else if (trimmed.match(/^\d+\.\s/) && leadingSpaces > 0 && inListItem) {
+                            // Start nested list if not already in one, or switch type
+                            if (!inNestedList || nestedListType !== 'ol') {
+                                if (inNestedList) nestedListHtml += `</${nestedListType}>`;
+                                nestedListHtml += '<ol>';
+                                inNestedList = true;
+                                nestedListType = 'ol';
+                            }
+
+                            // Add nested list item
+                            nestedListHtml += `<li>${trimmed.replace(/^\d+\.\s/, '').trim()}</li>`;
+
+                        // Handle continuation lines or nested content
+                        } else if (inListItem && trimmed && leadingSpaces === 0 && !trimmed.match(/^[-*+]\s/) && !trimmed.match(/^\d+\.\s/)) {
+                            // This is a continuation of the current list item (not indented)
+                            if (currentListItem) currentListItem += ' ';
+                            currentListItem += trimmed;
+
+                        // Handle non-list content
+                        } else if (trimmed && !inListItem) {
+                            listHtml += `<p>${trimmed}</p>`;
+
+                        // Empty line handling
+                        } else if (!trimmed) {
+                            // Check if next line starts a new list item or continues current structure
+                            const isNextTopLevelList = nextTrimmed && (nextTrimmed.match(/^[-*+]\s/) || nextTrimmed.match(/^\d+\.\s/)) && nextLeadingSpaces === 0;
+                            const isNextNestedList = nextTrimmed && (nextTrimmed.match(/^[-*+]\s/) || nextTrimmed.match(/^\d+\.\s/)) && nextLeadingSpaces > 0;
+
+                            if (inListItem && !isNextTopLevelList && !isNextNestedList) {
+                                // End of current list item
+                                if (inNestedList) {
+                                    currentListItem += nestedListHtml + `</${nestedListType}>`;
+                                    nestedListHtml = '';
+                                    inNestedList = false;
+                                    nestedListType = null;
+                                }
+
+                                if (currentListItem) {
+                                    listHtml += `<li>${currentListItem.trim()}</li>`;
+                                    currentListItem = '';
+                                }
+
+                                // Check if this is the end of the entire list
+                                if (!nextTrimmed || (!nextTrimmed.match(/^[-*+]\s/) && !nextTrimmed.match(/^\d+\.\s/))) {
+                                    if (currentList) {
+                                        listHtml += `</${currentList}>`;
+                                        currentList = null;
+                                    }
+                                    inListItem = false;
+                                }
+                            }
+                        }
+                    }
+
+                    // Close any remaining nested list, list item, and list
+                    if (inNestedList) {
+                        currentListItem += nestedListHtml + `</${nestedListType}>`;
+                    }
+                    if (inListItem && currentListItem) {
+                        listHtml += `<li>${currentListItem.trim()}</li>`;
+                    }
+                    if (currentList) {
+                        listHtml += `</${currentList}>`;
+                    }
+
+                    processedSections.push(listHtml);
+                } else {
+                    // Regular paragraph
+                    processedSections.push(`<p>${section.replace(/\n/g, '<br>')}</p>`);
+                }
+            }
+
+            html = processedSections.join('\n');
+
+            // Restore code blocks
+            for (let i = 0; i < codeBlocks.length; i++) {
+                html = html.replace(`__CODE_BLOCK_${i}__`, codeBlocks[i]);
+            }
+
+            // Restore inline code
+            for (let i = 0; i < inlineCodes.length; i++) {
+                html = html.replace(`__INLINE_CODE_${i}__`, inlineCodes[i]);
+            }
+
+            return html;
+        }
+
+        // Test cases
+        const test1 = `1. **Open the Application**: Navigate to the Business Search & Export Tool webpage
+
+2. **Set Your Location**:
+   - Enter your desired ZIP code in the input field (default: 60010 - Barrington, IL)
+   - Press Enter or click away to automatically update coordinates
+   - Verify the coordinates display shows your intended location`;
+
+        const test2 = `3. Set Search Radius:
+   - Adjust the radius slider or input field (1-100 miles)
+   - Default is 30 miles - suitable for most regional business searches
+   - Larger radius = more results but potentially less relevant
+
+4. Select Business Categories:
+   - Individual Selection: Check specific categories like "lawyers.csv" or "medical_practices.csv"
+   - Group Selection: Use group headers (e.g., "office", "amenity") to select all categories in that group
+   - Select All: Use the master checkbox to select/deselect all categories at once`;
+
+        const test3 = `- First bullet point
+- Second bullet point with more text
+- Third bullet point
+
+1. First numbered item
+2. Second numbered item
+3. Third numbered item
+
+- Another bullet
+- Final bullet`;
+
+        // Run tests
+        document.getElementById('test1-input').textContent = test1;
+        document.getElementById('test1-output').innerHTML = parseMarkdown(test1);
+
+        document.getElementById('test2-input').textContent = test2;
+        document.getElementById('test2-output').innerHTML = parseMarkdown(test2);
+
+        document.getElementById('test3-input').textContent = test3;
+        document.getElementById('test3-output').innerHTML = parseMarkdown(test3);
+    </script>
+</body>
+</html>

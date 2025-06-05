@@ -3351,7 +3351,7 @@ out center tags;`;
         // Convert horizontal rules
         html = html.replace(/^---$/gm, '<hr>');
 
-        // Split into sections and process
+        // Split into sections and process - but be smarter about list sections
         const sections = html.split(/\n\s*\n/);
         const processedSections = [];
 
@@ -3365,43 +3365,160 @@ out center tags;`;
             continue;
           }
 
-          // Handle lists
+          // Handle lists - check for both top-level and indented list items
           const lines = section.split('\n');
-          if (lines.some(line => line.trim().match(/^[-*]\s/) || line.trim().match(/^\d+\.\s/))) {
+          if (lines.some(line => {
+            const trimmed = line.trim();
+            const leadingSpaces = line.length - line.trimStart().length;
+            return trimmed.match(/^[-*+]\s/) || trimmed.match(/^\d+\.\s/) ||
+                   (leadingSpaces > 0 && trimmed.match(/^[-*+]\s/));
+          })) {
             let listHtml = '';
             let currentList = null;
-            let listItems = [];
+            let currentListItem = '';
+            let inListItem = false;
+            let nestedListHtml = '';
+            let inNestedList = false;
+            let nestedListType = null;
 
-            for (let line of lines) {
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
               const trimmed = line.trim();
+              const leadingSpaces = line.length - line.trimStart().length;
+              const nextLine = i < lines.length - 1 ? lines[i + 1] : '';
+              const nextTrimmed = nextLine.trim();
+              const nextLeadingSpaces = nextLine.length - nextLine.trimStart().length;
 
-              if (trimmed.match(/^[-*]\s/)) {
+              // Check if this is a top-level list item (unordered)
+              if (trimmed.match(/^[-*+]\s/) && leadingSpaces === 0) {
+                // Close any nested list first
+                if (inNestedList) {
+                  currentListItem += nestedListHtml + `</${nestedListType}>`;
+                  nestedListHtml = '';
+                  inNestedList = false;
+                  nestedListType = null;
+                }
+
+                // Close previous list item if exists
+                if (inListItem && currentListItem) {
+                  listHtml += `<li>${currentListItem.trim()}</li>`;
+                  currentListItem = '';
+                }
+
+                // Switch to unordered list if needed
                 if (currentList !== 'ul') {
                   if (currentList) listHtml += `</${currentList}>`;
                   listHtml += '<ul>';
                   currentList = 'ul';
                 }
-                listItems.push(`<li>${trimmed.substring(2)}</li>`);
-              } else if (trimmed.match(/^\d+\.\s/)) {
+
+                // Start new list item
+                currentListItem = trimmed.substring(2).trim();
+                inListItem = true;
+
+              // Check if this is a top-level list item (ordered)
+              } else if (trimmed.match(/^\d+\.\s/) && leadingSpaces === 0) {
+                // Close any nested list first
+                if (inNestedList) {
+                  currentListItem += nestedListHtml + `</${nestedListType}>`;
+                  nestedListHtml = '';
+                  inNestedList = false;
+                  nestedListType = null;
+                }
+
+                // Close previous list item if exists
+                if (inListItem && currentListItem) {
+                  listHtml += `<li>${currentListItem.trim()}</li>`;
+                  currentListItem = '';
+                }
+
+                // Switch to ordered list if needed
                 if (currentList !== 'ol') {
                   if (currentList) listHtml += `</${currentList}>`;
                   listHtml += '<ol>';
                   currentList = 'ol';
                 }
-                listItems.push(`<li>${trimmed.replace(/^\d+\.\s/, '')}</li>`);
-              } else if (trimmed) {
-                // Non-list line
-                if (currentList) {
-                  listHtml += listItems.join('') + `</${currentList}>`;
-                  listItems = [];
-                  currentList = null;
+
+                // Start new list item
+                currentListItem = trimmed.replace(/^\d+\.\s/, '').trim();
+                inListItem = true;
+
+              // Check if this is a nested/indented list item
+              } else if (trimmed.match(/^[-*+]\s/) && leadingSpaces > 0 && inListItem) {
+                // Start nested list if not already in one
+                if (!inNestedList) {
+                  nestedListHtml = '<ul>';
+                  inNestedList = true;
+                  nestedListType = 'ul';
                 }
+
+                // Add nested list item
+                nestedListHtml += `<li>${trimmed.substring(2).trim()}</li>`;
+
+              // Check if this is a nested/indented numbered list item
+              } else if (trimmed.match(/^\d+\.\s/) && leadingSpaces > 0 && inListItem) {
+                // Start nested list if not already in one, or switch type
+                if (!inNestedList || nestedListType !== 'ol') {
+                  if (inNestedList) nestedListHtml += `</${nestedListType}>`;
+                  nestedListHtml += '<ol>';
+                  inNestedList = true;
+                  nestedListType = 'ol';
+                }
+
+                // Add nested list item
+                nestedListHtml += `<li>${trimmed.replace(/^\d+\.\s/, '').trim()}</li>`;
+
+              // Handle continuation lines or nested content
+              } else if (inListItem && trimmed && leadingSpaces === 0 && !trimmed.match(/^[-*+]\s/) && !trimmed.match(/^\d+\.\s/)) {
+                // This is a continuation of the current list item (not indented)
+                if (currentListItem) currentListItem += ' ';
+                currentListItem += trimmed;
+
+              // Handle non-list content
+              } else if (trimmed && !inListItem) {
                 listHtml += `<p>${trimmed}</p>`;
+
+              // Empty line handling
+              } else if (!trimmed) {
+                // Check if next line starts a new list item or continues current structure
+                const isNextTopLevelList = nextTrimmed && (nextTrimmed.match(/^[-*+]\s/) || nextTrimmed.match(/^\d+\.\s/)) && nextLeadingSpaces === 0;
+                const isNextNestedList = nextTrimmed && (nextTrimmed.match(/^[-*+]\s/) || nextTrimmed.match(/^\d+\.\s/)) && nextLeadingSpaces > 0;
+
+                if (inListItem && !isNextTopLevelList && !isNextNestedList) {
+                  // End of current list item
+                  if (inNestedList) {
+                    currentListItem += nestedListHtml + `</${nestedListType}>`;
+                    nestedListHtml = '';
+                    inNestedList = false;
+                    nestedListType = null;
+                  }
+
+                  if (currentListItem) {
+                    listHtml += `<li>${currentListItem.trim()}</li>`;
+                    currentListItem = '';
+                  }
+
+                  // Check if this is the end of the entire list
+                  if (!nextTrimmed || (!nextTrimmed.match(/^[-*+]\s/) && !nextTrimmed.match(/^\d+\.\s/))) {
+                    if (currentList) {
+                      listHtml += `</${currentList}>`;
+                      currentList = null;
+                    }
+                    inListItem = false;
+                  }
+                }
               }
             }
 
+            // Close any remaining nested list, list item, and list
+            if (inNestedList) {
+              currentListItem += nestedListHtml + `</${nestedListType}>`;
+            }
+            if (inListItem && currentListItem) {
+              listHtml += `<li>${currentListItem.trim()}</li>`;
+            }
             if (currentList) {
-              listHtml += listItems.join('') + `</${currentList}>`;
+              listHtml += `</${currentList}>`;
             }
 
             processedSections.push(listHtml);
