@@ -384,6 +384,35 @@
       align-items: center;
     }
 
+    .download-all-files-btn {
+      background: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      color: white;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-right: var(--spacing-md);
+    }
+
+    .download-all-files-btn:hover:not(:disabled) {
+      background: #003a6b;
+      border-color: #003a6b;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-light);
+    }
+
+    .download-all-files-btn:disabled {
+      background: var(--text-muted);
+      border-color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+      box-shadow: none;
+    }
+
     .clear-results-btn {
       background: transparent;
       border: 1px solid var(--danger-color);
@@ -1730,6 +1759,24 @@
 
       .results-actions {
         flex-direction: row;
+        gap: var(--spacing-sm);
+      }
+    }
+
+    /* Mobile responsive styles for download button */
+    @media screen and (max-width: 600px) {
+      .download-all-files-btn {
+        font-size: 0.85rem;
+        padding: var(--spacing-xs);
+        margin-right: 0;
+        margin-bottom: var(--spacing-xs);
+        width: 100%;
+        text-align: center;
+      }
+
+      .results-actions {
+        flex-direction: column;
+        gap: var(--spacing-xs);
       }
     }
 
@@ -1873,7 +1920,7 @@
         </ul>
         <div class="signature-block">
           Kyle Rode
-          <a href="https://mytech.today" target="_blank">myTech.Today</a>
+          <a href="https://mytech.today/" target="_blank">myTech.Today</a>
           <a href="tel:18477674914" target="_blank">(847) 767-4914</a>
           <a href="mailto:sales@mytech.today" target="_blank">sales@mytech.today</a>
         </div>
@@ -1909,7 +1956,7 @@
       </nav>
 
       <div class="header-contact">
-        <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">mytech.today</a>
+        <a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">mytech.today</a>
         <a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">sales@mytech.today</a>
       </div>
     </div>
@@ -1959,7 +2006,6 @@
 
   <div class="actions">
     <button id="runBtn">Run Export</button>
-    <button id="downloadAllBtn" disabled>Download All as ZIP</button>
     <button id="exportConfigBtn">Export Config</button>
     <button id="importConfigBtn">Import Config</button>
     <input
@@ -1975,11 +2021,9 @@
   <!-- Results Container -->
   <div id="resultsContainer" class="results-container">
     <div class="results-header">
-      <h3>
-        📥 Export Results
-        <span id="resultsCount" class="results-count">0 files</span>
-      </h3>
+      <h3>📥 Export Results</h3>
       <div class="results-actions">
+        <button type="button" id="downloadAllFilesBtn" class="download-all-files-btn" disabled>Download all 0 files as a zip file</button>
         <button type="button" id="clearResultsBtn" class="clear-results-btn">Clear All</button>
       </div>
     </div>
@@ -2051,9 +2095,9 @@
         <h3>Contact & Support</h3>
         <p>Professional MSP services in Chicagoland</p>
         <ul>
-          <li><a href="https://mytech.today" target="_blank" rel="noopener noreferrer">🏢 myTech.Today</a></li>
+          <li><a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">🏢 myTech.Today</a></li>
           <li><a href="tel:18477674914" target="_blank" rel="noopener noreferrer">📞 (847) 767-4914</a></li>
-          <li><a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">sales@mytech.today</a></li>
+          <li><a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">📧 sales@mytech.today</a></li>
           <li>📍 Barrington, IL</li>
         </ul>
       </div>
@@ -2472,23 +2516,25 @@
         }
       }
 
-      // Helper function to update the results container visibility and count
+      // Helper function to update the results container visibility and download button
       window.updateResultsContainer = function updateResultsContainer() {
         const resultsContainer = document.getElementById("resultsContainer");
         const downloadsDiv = document.getElementById("downloads");
-        const resultsCount = document.getElementById("resultsCount");
+        const downloadAllBtn = document.getElementById("downloadAllFilesBtn");
 
-        if (!resultsContainer || !downloadsDiv || !resultsCount) return;
+        if (!resultsContainer || !downloadsDiv || !downloadAllBtn) return;
 
         const downloadLinks = downloadsDiv.querySelectorAll(".download-link");
         const count = downloadLinks.length;
 
         if (count > 0) {
           resultsContainer.classList.add("has-results");
-          resultsCount.textContent = `${count} file${count !== 1 ? 's' : ''}`;
+          downloadAllBtn.textContent = `Download all ${count} file${count !== 1 ? 's' : ''} as a zip file`;
+          // Keep button disabled until export is complete - will be enabled by enableDownloadAllButton()
         } else {
           resultsContainer.classList.remove("has-results");
-          resultsCount.textContent = "0 files";
+          downloadAllBtn.textContent = "Download all 0 files as a zip file";
+          downloadAllBtn.disabled = true;
         }
       }
 
@@ -3585,7 +3631,7 @@
       const downloadsDiv = document.getElementById("downloads");
       const selectAllCategoriesCheckbox = document.getElementById("selectAllCategories");
       const allCategoriesContainer = document.getElementById("allCategories");
-      const downloadAllBtn = document.getElementById("downloadAllBtn");
+      const downloadAllBtn = document.getElementById("downloadAllFilesBtn");
 
       // ZIP code and radius elements (needed for runExport)
       const zipCodeInput = document.getElementById("zipCode");
@@ -4053,7 +4099,10 @@ out center tags;`;
         }
         
         runBtn.disabled = true;
-        downloadAllBtn.disabled = true;
+        const downloadAllFilesBtn = document.getElementById("downloadAllFilesBtn");
+        if (downloadAllFilesBtn) {
+          downloadAllFilesBtn.disabled = true;
+        }
 
         if (USE_GOOGLE_MAPS) {
           log("=== Export Started (Google Maps) ===");
@@ -4493,56 +4542,63 @@ out center tags;`;
 
       // Enable download all button after export is complete
       function enableDownloadAllButton() {
-        downloadAllBtn.disabled = false;
+        const downloadAllBtn = document.getElementById("downloadAllFilesBtn");
+        if (downloadAllBtn) {
+          downloadAllBtn.disabled = false;
+        }
       }
 
       // Download all files as a single ZIP
       async function downloadAllFiles() {
         log("=== Creating ZIP file with all CSVs ===");
+        const downloadsDiv = document.getElementById("downloads");
         const links = downloadsDiv.querySelectorAll("a.download-link");
-        
+
         if (links.length === 0) {
           log("[!] No files available to download. Run the export first.");
           return;
         }
-        
+
         // Create new JSZip instance
         const zip = new JSZip();
-        
+
         // Add each CSV to the zip
         for (let i = 0; i < links.length; i++) {
           const link = links[i];
           const filename = link.download;
           log(`Adding ${filename} to ZIP (${i+1}/${links.length})`);
-          
+
           // Fetch the blob from the object URL
           const response = await fetch(link.href);
           const blob = await response.blob();
-          
+
           // Add file to zip
           zip.file(filename, blob);
         }
-        
+
         // Generate the zip file
         log("Generating ZIP file...");
         const zipBlob = await zip.generateAsync({type: "blob"});
-        
+
         // Create download link for the zip
         const zipUrl = URL.createObjectURL(zipBlob);
         const zipLink = document.createElement("a");
         zipLink.href = zipUrl;
         zipLink.download = "business_data.zip";
-        
+
         // Trigger download
         document.body.appendChild(zipLink);
         zipLink.click();
         document.body.removeChild(zipLink);
-        
+
         log("=== ZIP file downloaded ===");
       }
 
       // Add event listener for download all button
-      downloadAllBtn.addEventListener("click", downloadAllFiles);
+      const downloadAllFilesBtn = document.getElementById("downloadAllFilesBtn");
+      if (downloadAllFilesBtn) {
+        downloadAllFilesBtn.addEventListener("click", downloadAllFiles);
+      }
 
       // Update radius values in the UI
       document.addEventListener('DOMContentLoaded', function() {
@@ -4990,7 +5046,7 @@ out center tags;`;
 
           <h1>Business Search & Export Tool</h1>
 
-          <p>A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a>.</p>
+          <p>A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">myTech.Today</a>.</p>
 
           <h2>Quick Start Guide</h2>
 
@@ -5049,10 +5105,10 @@ out center tags;`;
           <h2>Support</h2>
           <p>For questions or support, contact:</p>
           <ul>
-            <li><strong>myTech.Today</strong></li>
+            <li><strong><a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">myTech.Today</a></strong></li>
             <li>Email: <a href="mailto:sales@mytech.today">sales@mytech.today</a></li>
             <li>Phone: <a href="tel:18477674914">(847) 767-4914</a></li>
-            <li>Website: <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">https://mytech.today</a></li>
+            <li>Website: <a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">https://mytech.today</a></li>
           </ul>
         `;
 
