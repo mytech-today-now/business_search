@@ -3140,71 +3140,112 @@ out center tags;`;
         // Convert horizontal rules
         html = html.replace(/^---$/gm, '<hr>');
 
-        // Split into sections and process
-        const sections = html.split(/\n\s*\n/);
-        const processedSections = [];
+        // Process line by line instead of section by section
+        const lines = html.split('\n');
+        const processedLines = [];
+        let currentList = null;
+        let inParagraph = false;
+        let paragraphContent = '';
 
-        for (let section of sections) {
-          section = section.trim();
-          if (!section) continue;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const trimmed = line.trim();
 
-          // Skip if it's already HTML (headers, hr, etc.)
-          if (section.startsWith('<h') || section.startsWith('<hr') || section.includes('__CODE_BLOCK_')) {
-            processedSections.push(section);
+          // Skip empty lines
+          if (!trimmed) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Close any open list
+            if (currentList) {
+              processedLines.push(`</${currentList}>`);
+              currentList = null;
+            }
             continue;
           }
 
-          // Handle lists
-          const lines = section.split('\n');
-          if (lines.some(line => line.trim().match(/^[-*]\s/) || line.trim().match(/^\d+\.\s/))) {
-            let listHtml = '';
-            let currentList = null;
-
-            for (let line of lines) {
-              const trimmed = line.trim();
-
-              if (trimmed.match(/^[-*]\s/)) {
-                if (currentList !== 'ul') {
-                  if (currentList) listHtml += `</${currentList}>`;
-                  listHtml += '<ul>';
-                  currentList = 'ul';
-                }
-                // Extract the list item content and process any inline formatting
-                const itemContent = trimmed.substring(2).trim();
-                listHtml += `<li>${itemContent}</li>`;
-              } else if (trimmed.match(/^\d+\.\s/)) {
-                if (currentList !== 'ol') {
-                  if (currentList) listHtml += `</${currentList}>`;
-                  listHtml += '<ol>';
-                  currentList = 'ol';
-                }
-                // Extract the list item content and process any inline formatting
-                const itemContent = trimmed.replace(/^\d+\.\s/, '').trim();
-                listHtml += `<li>${itemContent}</li>`;
-              } else if (trimmed) {
-                // Non-list line - close current list and add paragraph
-                if (currentList) {
-                  listHtml += `</${currentList}>`;
-                  currentList = null;
-                }
-                listHtml += `<p>${trimmed}</p>`;
-              }
-              // Empty lines are ignored (they separate list items naturally)
+          // Skip if it's already HTML (headers, hr, etc.)
+          if (trimmed.startsWith('<h') || trimmed.startsWith('<hr') || trimmed.includes('__CODE_BLOCK_')) {
+            // Close any open elements first
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
             }
-
-            // Close any remaining open list
             if (currentList) {
-              listHtml += `</${currentList}>`;
+              processedLines.push(`</${currentList}>`);
+              currentList = null;
             }
+            processedLines.push(trimmed);
+            continue;
+          }
 
-            processedSections.push(listHtml);
+          // Handle unordered list items
+          if (trimmed.match(/^[-*]\s/)) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Start or continue unordered list
+            if (currentList !== 'ul') {
+              if (currentList) processedLines.push(`</${currentList}>`);
+              processedLines.push('<ul>');
+              currentList = 'ul';
+            }
+            const itemContent = trimmed.substring(2).trim();
+            processedLines.push(`<li>${itemContent}</li>`);
+            continue;
+          }
+
+          // Handle ordered list items
+          if (trimmed.match(/^\d+\.\s/)) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Start or continue ordered list
+            if (currentList !== 'ol') {
+              if (currentList) processedLines.push(`</${currentList}>`);
+              processedLines.push('<ol>');
+              currentList = 'ol';
+            }
+            const itemContent = trimmed.replace(/^\d+\.\s/, '').trim();
+            processedLines.push(`<li>${itemContent}</li>`);
+            continue;
+          }
+
+          // Regular text line
+          // Close any open list
+          if (currentList) {
+            processedLines.push(`</${currentList}>`);
+            currentList = null;
+          }
+
+          // Add to paragraph content
+          if (inParagraph) {
+            paragraphContent += ' ' + trimmed;
           } else {
-            // Regular paragraph
-            processedSections.push(`<p>${section.replace(/\n/g, '<br>')}</p>`);
+            paragraphContent = trimmed;
+            inParagraph = true;
           }
         }
 
-        html = processedSections.join('\n');
+        // Close any remaining open elements
+        if (inParagraph && paragraphContent.trim()) {
+          processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+        }
+        if (currentList) {
+          processedLines.push(`</${currentList}>`);
+        }
+
+        html = processedLines.join('\n');
 
         // Restore code blocks
         for (let i = 0; i < codeBlocks.length; i++) {
@@ -3215,6 +3256,9 @@ out center tags;`;
         for (let i = 0; i < inlineCodes.length; i++) {
           html = html.replace(`__INLINE_CODE_${i}__`, inlineCodes[i]);
         }
+
+        // Debug: log the final HTML for troubleshooting
+        console.log('Parsed markdown HTML:', html.substring(0, 500) + '...');
 
         return html;
       }
