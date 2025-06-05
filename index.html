@@ -715,8 +715,104 @@
     }
 
     /* ========================================
+       MAP PROVIDER & GOOGLE API KEY SETTINGS
+       ======================================== */
+
+    .settings-section {
+      margin-top: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .map-provider-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .map-provider-toggle label {
+      font-weight: 500;
+      color: var(--text-color);
+      margin-right: var(--spacing-sm);
+    }
+
+    .settings-section label {
+      min-width: 100px;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    #googleApiKeyInput {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xs);
+      background: var(--background-light);
+      font-family: inherit;
+      width: 200px;
+    }
+
+    #toggleGoogleKeyVisibility {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: var(--spacing-xs);
+      border-radius: var(--border-radius);
+      transition: background-color 0.2s ease;
+    }
+
+    #toggleGoogleKeyVisibility:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .status-message {
+      font-size: 0.9rem;
+      margin-left: var(--spacing-sm);
+      font-style: italic;
+    }
+
+    .status-message.success {
+      color: var(--success-color);
+    }
+
+    .status-message.danger {
+      color: var(--danger-color);
+    }
+
+    .status-message.muted {
+      color: var(--text-muted);
+    }
+
+    /* ========================================
        RESPONSIVE MEDIA QUERIES
        ======================================== */
+
+    /* Responsive adjustments for settings sections */
+    @media screen and (max-width: 600px) {
+      .settings-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+      }
+
+      .map-provider-toggle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+      }
+
+      .settings-section label {
+        min-width: auto;
+      }
+
+      #googleApiKeyInput {
+        width: 100%;
+        max-width: 250px;
+      }
+    }
 
     /* Very small screens - 157px width (smartwatch/mini displays) */
     @media screen and (max-width: 157px) {
@@ -1256,6 +1352,27 @@
     <br>Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link">Ask ChatGPT for OSM tags</a><a href="#" id="resetCategoriesLink">Reset Categories</a><a href="#" id="restoreGroupsLink">Restore Hidden Groups</a>
   </p>
 
+  <!-- Begin Map Provider & Google API Key Settings -->
+  <div id="mapProviderContainer" class="settings-section">
+    <label>Map Provider:</label>
+    <div class="map-provider-toggle">
+      <input type="radio" name="mapProvider" id="osmProvider" value="osm" checked>
+      <label for="osmProvider">OpenStreetMap</label>
+      <input type="radio" name="mapProvider" id="googleProvider" value="google">
+      <label for="googleProvider">Google Maps</label>
+    </div>
+  </div>
+
+  <div id="googleKeyContainer" class="settings-section">
+    <label for="googleApiKeyInput">Google API Key:</label>
+    <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
+    <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
+    <button type="button" id="saveGoogleKeyBtn">Save Key</button>
+    <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
+    <span id="googleKeyStatus" class="status-message"></span>
+  </div>
+  <!-- End Map Provider & Google API Key Settings -->
+
   <div class="categories-container">
     <div class="categories-header">
       <label><input type="checkbox" id="selectAllCategories"> Select/Unselect All Categories</label>
@@ -1283,6 +1400,13 @@
 
   <script>
     (function () {
+      // ======================================================
+      // Map Provider & Google API Key Management
+      // ======================================================
+      // Initialize map settings from localStorage
+      let USE_GOOGLE_MAPS = false;
+      let googleApiKey = null;
+
       // ======================================================
       // User Categories Storage Helpers
       // ======================================================
@@ -1331,6 +1455,58 @@
         }
       }
       
+      // ======================================================
+      // Map Settings Initialization
+      // ======================================================
+      // Initialize map settings from localStorage
+      function initializeMapSettings() {
+        // Read map provider from localStorage
+        const storedProvider = localStorage.getItem("mapProvider");
+        if (storedProvider === "google") {
+          USE_GOOGLE_MAPS = true;
+          document.getElementById("googleProvider").checked = true;
+        } else {
+          USE_GOOGLE_MAPS = false;
+          document.getElementById("osmProvider").checked = true;
+        }
+
+        // Read Google API key from localStorage
+        const storedKey = localStorage.getItem("googleApiKey");
+        if (storedKey) {
+          googleApiKey = storedKey;
+          obscureKeyInInput();
+          document.getElementById("removeGoogleKeyBtn").disabled = false;
+          document.getElementById("saveGoogleKeyBtn").textContent = "Update Key";
+          const statusEl = document.getElementById("googleKeyStatus");
+          statusEl.textContent = "Key saved";
+          statusEl.className = "status-message success";
+        }
+
+        console.log("Map provider initialized:", USE_GOOGLE_MAPS ? "Google" : "OpenStreetMap");
+      }
+
+      // Helper function to obscure API key in input
+      function obscureKeyInInput() {
+        const input = document.getElementById("googleApiKeyInput");
+        input.value = "•".repeat(googleApiKey.length);
+        input.setAttribute("data-obscured", "true");
+        input.type = "password";
+      }
+
+      // fetchGooglePlaces stub for future implementation
+      async function fetchGooglePlaces(filters, lat, lng, radius) {
+        if (!googleApiKey) {
+          console.warn("Google API Key missing. Cannot fetch Google Places.");
+          log("[!] Google API key not found; switching back to OpenStreetMap.");
+          return;
+        }
+        // Example structure: build search parameters
+        const filterStr = filters.map(f => `${f.key}:${f.value}`).join(", ");
+        log(`→ (Google) Searching for ${filterStr} around ${lat},${lng} radius ${radius}m`);
+        // TODO: call Google Places API using fetch with googleApiKey
+        console.log("Google Places API call would be made here with key:", googleApiKey.substring(0, 8) + "...");
+      }
+
       // ======================================================
       // Configuration
       // ======================================================
@@ -2788,18 +2964,32 @@ out center tags;`;
         
         runBtn.disabled = true;
         downloadAllBtn.disabled = true;
-        log("=== Export Started (Overpass) ===");
-        
+
+        if (USE_GOOGLE_MAPS) {
+          log("=== Export Started (Google Maps) ===");
+          if (!googleApiKey) {
+            log("[!] Google Maps selected but no API key found. Please save a key to proceed.");
+            runBtn.disabled = false;
+            return;
+          }
+        } else {
+          log("=== Export Started (Overpass) ===");
+        }
+
         // Get fresh merged categories including user-defined ones
         const ALL_CATEGORIES = buildAllCategories();
-        
+
         for (const checkbox of selectedCheckboxes) {
           const filename = checkbox.dataset.filename;
           const filters = ALL_CATEGORIES[filename];
-          
+
           try {
-            await processCategory(filename, filters);
-            // slight delay to avoid overloading Overpass
+            if (USE_GOOGLE_MAPS) {
+              await fetchGooglePlaces(filters, window.LAT, window.LNG, window.RADIUS);
+            } else {
+              await processCategory(filename, filters);
+            }
+            // slight delay to avoid overloading APIs
             await delay(1000);
           } catch (err) {
             log(`   [!] Error processing ${filename}: ${err.message}`);
@@ -3214,6 +3404,142 @@ out center tags;`;
         });
         document.querySelectorAll('.radius-meters').forEach(el => {
           el.textContent = RADIUS;
+        });
+
+        // Initialize map settings
+        initializeMapSettings();
+
+        // Handle mapProvider toggle
+        const osmProvider = document.getElementById("osmProvider");
+        const googleProvider = document.getElementById("googleProvider");
+
+        osmProvider.addEventListener("change", function() {
+          if (this.checked) {
+            USE_GOOGLE_MAPS = false;
+            localStorage.setItem("mapProvider", "osm");
+            console.log("Map provider set to:", "OpenStreetMap");
+            document.getElementById("runBtn").disabled = false;
+          }
+        });
+
+        googleProvider.addEventListener("change", function() {
+          if (this.checked) {
+            USE_GOOGLE_MAPS = true;
+            localStorage.setItem("mapProvider", "google");
+            console.log("Map provider set to:", "Google Maps");
+
+            if (!googleApiKey) {
+              const statusEl = document.getElementById("googleKeyStatus");
+              statusEl.textContent = "No API Key found";
+              statusEl.className = "status-message danger";
+              document.getElementById("runBtn").disabled = true;
+              alert("Google Maps selected but no API key saved. Please save a key to proceed.");
+            } else {
+              document.getElementById("runBtn").disabled = false;
+            }
+          }
+        });
+
+        // Save/update API key, obscure input, manage remove button state
+        const saveGoogleKeyBtn = document.getElementById("saveGoogleKeyBtn");
+        const removeGoogleKeyBtn = document.getElementById("removeGoogleKeyBtn");
+        const googleApiKeyInput = document.getElementById("googleApiKeyInput");
+        const googleKeyStatus = document.getElementById("googleKeyStatus");
+        const toggleGoogleKeyVisibility = document.getElementById("toggleGoogleKeyVisibility");
+
+        let isKeyVisible = false;
+
+        saveGoogleKeyBtn.addEventListener("click", function() {
+          try {
+            if (googleApiKeyInput.getAttribute("data-obscured") === "true") {
+              // User wants to update: switch to edit mode
+              googleApiKeyInput.removeAttribute("data-obscured");
+              googleApiKeyInput.value = "";
+              googleApiKeyInput.type = "text";
+              googleApiKeyInput.focus();
+              saveGoogleKeyBtn.textContent = "Save Key";
+            } else {
+              // Save new key
+              const newKey = googleApiKeyInput.value.trim();
+              if (!newKey) {
+                alert("API Key cannot be empty.");
+                return;
+              }
+              if (newKey.length < 20) {
+                alert("Invalid API Key format. Key should be at least 20 characters.");
+                return;
+              }
+
+              googleApiKey = newKey;
+              localStorage.setItem("googleApiKey", newKey);
+              obscureKeyInInput();
+              removeGoogleKeyBtn.disabled = false;
+              saveGoogleKeyBtn.textContent = "Update Key";
+              googleKeyStatus.textContent = "Key saved";
+              googleKeyStatus.className = "status-message success";
+
+              // Enable run button if Google Maps is selected
+              if (USE_GOOGLE_MAPS) {
+                document.getElementById("runBtn").disabled = false;
+              }
+
+              console.log("Google API key saved.");
+            }
+          } catch (err) {
+            alert("Error saving API key: " + err.message);
+          }
+        });
+
+        removeGoogleKeyBtn.addEventListener("click", function() {
+          try {
+            localStorage.removeItem("googleApiKey");
+            googleApiKey = null;
+            googleApiKeyInput.value = "";
+            googleApiKeyInput.removeAttribute("data-obscured");
+            googleApiKeyInput.type = "text";
+            removeGoogleKeyBtn.disabled = true;
+            saveGoogleKeyBtn.textContent = "Save Key";
+            googleKeyStatus.textContent = "";
+            googleKeyStatus.className = "status-message";
+
+            // Disable run button if Google Maps is selected
+            if (USE_GOOGLE_MAPS) {
+              document.getElementById("runBtn").disabled = true;
+              googleKeyStatus.textContent = "No API Key found";
+              googleKeyStatus.className = "status-message danger";
+            }
+
+            console.log("Google API key removed.");
+          } catch (err) {
+            alert("Error removing API key: " + err.message);
+          }
+        });
+
+        // Show/Hide Key option
+        toggleGoogleKeyVisibility.addEventListener("click", function() {
+          if (googleApiKeyInput.getAttribute("data-obscured") === "true" && googleApiKey) {
+            if (!isKeyVisible) {
+              // Show key temporarily
+              googleApiKeyInput.value = googleApiKey;
+              googleApiKeyInput.type = "text";
+              toggleGoogleKeyVisibility.textContent = "🙈";
+              isKeyVisible = true;
+
+              // Hide again after 3 seconds
+              setTimeout(() => {
+                if (isKeyVisible) {
+                  obscureKeyInInput();
+                  toggleGoogleKeyVisibility.textContent = "👁️";
+                  isKeyVisible = false;
+                }
+              }, 3000);
+            } else {
+              // Hide key immediately
+              obscureKeyInInput();
+              toggleGoogleKeyVisibility.textContent = "👁️";
+              isKeyVisible = false;
+            }
+          }
         });
       });
     })();
