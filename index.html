@@ -1022,11 +1022,36 @@
       margin: 0 0 1rem 0;
     }
     .markdown-content ul, .markdown-content ol {
-      margin: 0 0 1rem 0;
-      padding-left: 2rem;
+      margin: 0 0 var(--spacing-md) 0;
+      padding-left: var(--spacing-xl);
     }
+
     .markdown-content li {
-      margin: 0.25rem 0;
+      margin-bottom: var(--spacing-sm);
+      line-height: 1.6;
+    }
+
+    /* Ensure nested lists have proper spacing */
+    .markdown-content li ul, .markdown-content li ol {
+      margin-top: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    /* Style list markers */
+    .markdown-content ul {
+      list-style-type: disc;
+    }
+
+    .markdown-content ol {
+      list-style-type: decimal;
+    }
+
+    .markdown-content ul ul {
+      list-style-type: circle;
+    }
+
+    .markdown-content ul ul ul {
+      list-style-type: square;
     }
     .markdown-content code {
       background: #f6f8fa;
@@ -5167,6 +5192,7 @@ out center tags;`;
         });
       }
 
+      // Enhanced function to fetch the latest README.md from GitHub
       async function loadMarkdownContent() {
         try {
           contentDiv.innerHTML = '<div class="loading-message">Loading latest documentation from GitHub...</div>';
@@ -5175,16 +5201,7 @@ out center tags;`;
 
           // Add cache-busting parameter to ensure we get the latest version
           const timestamp = new Date().getTime();
-
-          // Try multiple possible README filenames and branches
-          const possibleUrls = [
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/README.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/Readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/README.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/Readme.md?t=${timestamp}`
-          ];
+          const randomId = Math.random().toString(36).substring(2, 15);
 
           let response;
           let lastError;
@@ -5259,49 +5276,62 @@ out center tags;`;
 
           contentDiv.innerHTML = htmlContent;
 
-          // Add event listeners for internal anchor links
-          setupInternalLinkHandlers();
+          // Try each URL with retry logic
+          for (const url of possibleUrls) {
+            for (let attempt = 1; attempt <= 2; attempt++) {
+              try {
+                console.log(`Attempting (${attempt}/2): ${url}`);
 
-        } catch (error) {
-          console.error('Error loading markdown:', error);
+                response = await fetch(url, {
+                  headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                });
 
-          // Ensure attemptedUrls is defined
-          const urlList = (typeof attemptedUrls !== 'undefined' && attemptedUrls.length > 0)
-            ? attemptedUrls.map(url => `<li><code>${url}</code></li>`).join('')
-            : '<li><code>No URLs attempted (initialization error)</code></li>';
+                attemptedUrls.push(`${url} (attempt ${attempt}) - Status: ${response.status}`);
 
-          contentDiv.innerHTML = `
-            <div class="error-message">
-              <h3>Error Loading Documentation</h3>
-              <p>Unable to load the documentation from GitHub. This could be due to:</p>
-              <ul>
-                <li>Network connectivity issues</li>
-                <li>GitHub API rate limiting</li>
-                <li>Repository access restrictions</li>
-                <li>CORS policy restrictions</li>
-                <li>Local file access restrictions</li>
-              </ul>
-              <p>Please try again later or visit the GitHub repository directly:</p>
-              <p><a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">View Documentation on GitHub</a></p>
-              <p><a href="https://github.com/mytech-today-now/business_search/blob/main/README.md" target="_blank" rel="noopener noreferrer">Direct link to README.md</a></p>
-              <p><em>Note: The documentation is automatically loaded from the latest version in the repository.</em></p>
-              <div style="margin-top: 20px;">
-                <button onclick="loadEmbeddedDocs()" style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
-                  Load Basic Documentation
-                </button>
-              </div>
-              <details>
-                <summary>Technical Details</summary>
-                <p><strong>Error:</strong> ${error.message}</p>
-                <p><strong>Attempted URLs:</strong></p>
-                <ul>
-                  ${urlList}
-                </ul>
-              </details>
-            </div>
-          `;
-        }
-      }
+                if (response.ok) {
+                  markdownText = await response.text();
+
+                  // Validate content quality and completeness
+                  if (markdownText.length > 1000 &&
+                      markdownText.includes('# Business Search & Export Tool') &&
+                      markdownText.includes('## Technology Stack') &&
+                      markdownText.includes('myTech.Today')) {
+
+                    console.log(`Success! Loaded ${markdownText.length} characters from: ${url}`);
+                    const htmlContent = parseMarkdown(markdownText);
+
+                    contentDiv.innerHTML = `
+                      <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; margin-bottom: 20px; border-radius: 4px; color: #0c5460;">
+                        <strong>✓ GitHub Raw:</strong> Documentation loaded successfully (${new Date().toLocaleString()})
+                      </div>
+                      ${htmlContent}
+                    `;
+                    setupInternalLinkHandlers();
+                    return;
+                  } else {
+                    console.warn(`Content validation failed for ${url} - length: ${markdownText.length}`);
+                    attemptedUrls.push(`${url} - Content validation failed (length: ${markdownText.length})`);
+                  }
+                }
+
+                lastError = new Error(`HTTP error! status: ${response.status} for ${url}`);
+
+              } catch (error) {
+                lastError = error;
+                attemptedUrls.push(`${url} (attempt ${attempt}) - Error: ${error.message}`);
+                console.warn(`Failed attempt ${attempt} for ${url}:`, error.message);
+
+                // Wait before retry
+                if (attempt === 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+            }
+          }
 
       // Fallback function to load basic embedded documentation
       window.loadEmbeddedDocs = function() {
