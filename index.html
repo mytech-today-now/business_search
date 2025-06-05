@@ -3,7 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Export Businesses Using Overpass (No Google API)</title>
+
+  <!-- Click-baity SEO Optimized Title -->
+  <title>🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes! No API Required | myTech.Today</title>
+
+  <!-- Essential Meta Tags -->
+  <meta name="description" content="Generate unlimited business leads instantly! Export thousands of local businesses with contact info, addresses & phone numbers. Free tool uses OpenStreetMap - no Google API needed. Perfect for MSPs, marketers & sales teams in Chicago, Illinois." />
+  <meta name="keywords" content="business leads, lead generation, business directory, local businesses, MSP leads, Chicago businesses, Illinois companies, free lead generator, business export tool, OpenStreetMap, Overpass API, sales leads, marketing lists, business contacts" />
+  <meta name="author" content="myTech.Today - Professional MSP Services" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="distribution" content="global" />
+  <meta name="rating" content="general" />
+
+  <!-- Open Graph / Facebook Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes!" />
+  <meta property="og:description" content="Generate unlimited business leads instantly! Export thousands of local businesses with contact info. Free tool uses OpenStreetMap - no Google API needed." />
+  <meta property="og:url" content="https://mytech.today/business-search/" />
+  <meta property="og:site_name" content="myTech.Today Business Lead Generator" />
+  <meta property="og:image" content="https://mytech.today/assets/business-search-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Free Business Lead Generator Tool - Export Local Businesses" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="🚀 FREE Business Lead Generator: Export 1000s of Local Businesses!" />
+  <meta name="twitter:description" content="Generate unlimited business leads instantly! Export thousands of local businesses with contact info. Free tool - no API needed." />
+  <meta name="twitter:image" content="https://mytech.today/assets/business-search-preview.png" />
+  <meta name="twitter:image:alt" content="Free Business Lead Generator Tool" />
+  <meta name="twitter:site" content="@mytechtoday" />
+  <meta name="twitter:creator" content="@mytechtoday" />
+
+  <!-- Additional SEO Meta Tags -->
+  <meta name="geo.region" content="US-IL" />
+  <meta name="geo.placename" content="Barrington, Illinois" />
+  <meta name="geo.position" content="42.1543;-88.1362" />
+  <meta name="ICBM" content="42.1543, -88.1362" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://mytech.today/business-search/" />
+
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Google Analytics G4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LYE0XW95BZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LYE0XW95BZ', {
+      page_title: document.title,
+      page_location: window.location.href,
+      send_page_view: true
+    });
+
+    // ======================================================
+    // Google Analytics Event Tracking Functions
+    // ======================================================
+
+    // Track user interactions
+    function trackEvent(action, category = 'User Interaction', label = '', value = null) {
+      try {
+        const eventData = {
+          event_category: category,
+          event_label: label
+        };
+
+        if (value !== null) {
+          eventData.value = value;
+        }
+
+        gtag('event', action, eventData);
+        console.log(`📊 GA Event: ${action} | ${category} | ${label}`);
+      } catch (error) {
+        console.warn('Analytics tracking error:', error);
+      }
+    }
+
+    // Track button clicks
+    function trackButtonClick(buttonName, context = '') {
+      trackEvent('button_click', 'Button Interaction', `${buttonName}${context ? ` - ${context}` : ''}`);
+    }
+
+    // Track form interactions
+    function trackFormInteraction(action, formElement, value = '') {
+      trackEvent(action, 'Form Interaction', `${formElement}${value ? ` - ${value}` : ''}`);
+    }
+
+    // Track settings changes
+    function trackSettingsChange(setting, oldValue, newValue) {
+      trackEvent('settings_change', 'Settings', `${setting}: ${oldValue} → ${newValue}`);
+    }
+
+    // Track export operations
+    function trackExport(exportType, categoryCount = 0, resultCount = 0) {
+      trackEvent('export_started', 'Export Operations', exportType, categoryCount);
+      if (resultCount > 0) {
+        trackEvent('export_completed', 'Export Operations', `${exportType} - ${resultCount} results`);
+      }
+    }
+
+    // Track downloads
+    function trackDownload(fileName, fileSize = 0, downloadType = 'individual') {
+      trackEvent('file_download', 'Downloads', `${downloadType}: ${fileName}`, fileSize);
+    }
+
+    // Track errors
+    function trackError(errorType, errorMessage, context = '') {
+      trackEvent('error_occurred', 'Errors', `${errorType}${context ? ` - ${context}` : ''}: ${errorMessage}`);
+    }
+
+    // Track user engagement
+    function trackEngagement(action, details = '') {
+      trackEvent(action, 'User Engagement', details);
+    }
+
+    // Track API usage
+    function trackApiUsage(apiType, operation, success = true, resultCount = 0) {
+      const status = success ? 'success' : 'failure';
+      trackEvent('api_call', 'API Usage', `${apiType} - ${operation} - ${status}`, resultCount);
+    }
+
+    // Track page interactions
+    function trackPageInteraction(interaction, element = '', details = '') {
+      trackEvent(interaction, 'Page Interaction', `${element}${details ? ` - ${details}` : ''}`);
+    }
+
+    // Track search parameters
+    function trackSearchParameters(zipCode, radius, categoryCount) {
+      trackEvent('search_configured', 'Search Parameters', `ZIP: ${zipCode}, Radius: ${radius}mi, Categories: ${categoryCount}`);
+    }
+
+    // Track timing events
+    function trackTiming(category, variable, time, label = '') {
+      gtag('event', 'timing_complete', {
+        name: variable,
+        value: time,
+        event_category: category,
+        event_label: label
+      });
+    }
+
+    // Make tracking functions globally available
+    window.trackEvent = trackEvent;
+    window.trackButtonClick = trackButtonClick;
+    window.trackFormInteraction = trackFormInteraction;
+    window.trackSettingsChange = trackSettingsChange;
+    window.trackExport = trackExport;
+    window.trackDownload = trackDownload;
+    window.trackError = trackError;
+    window.trackEngagement = trackEngagement;
+    window.trackApiUsage = trackApiUsage;
+    window.trackPageInteraction = trackPageInteraction;
+    window.trackSearchParameters = trackSearchParameters;
+    window.trackTiming = trackTiming;
+  </script>
   <style>
     /* CSS Custom Properties for consistent theming */
     :root {
@@ -2659,10 +2822,13 @@
 
       // Update radius in meters when miles input changes
       radiusMilesInput.addEventListener("input", function() {
+        const oldRadius = RADIUS_MILES;
         RADIUS_MILES = parseFloat(this.value) || 30;
         window.RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
         radiusMetersSpan.textContent = window.RADIUS;
         radiusDisplay.textContent = RADIUS_MILES;
+
+        trackFormInteraction('radius_changed', 'radius_input', `${oldRadius}mi → ${RADIUS_MILES}mi`);
       });
 
       // Geocode ZIP code using Census Geocoding API - make it globally accessible
@@ -3398,6 +3564,7 @@
       zipCodeInput.addEventListener("blur", async function() {
         const newZip = this.value.trim();
         if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
+          trackFormInteraction('zip_code_changed', 'zip_input', `${window.ZIP_CODE} → ${newZip}`);
           await window.geocodeZipCode(newZip);
         }
       });
@@ -3815,6 +3982,11 @@
         if (!mainEventListenersSetup) {
           selectAllCategoriesCheckbox.addEventListener('change', function() {
             const isChecked = this.checked;
+            const categoryCount = document.querySelectorAll('.category-checkbox').length;
+
+            trackFormInteraction('select_all_categories', 'select_all_checkbox', isChecked ? 'checked' : 'unchecked');
+            trackPageInteraction('bulk_selection', 'categories', `${isChecked ? 'selected' : 'deselected'} ${categoryCount} categories`);
+
             document.querySelectorAll('.category-checkbox').forEach(checkbox => {
               checkbox.checked = isChecked;
             });
@@ -3989,7 +4161,10 @@ out center tags;`;
         let data;
         try {
           data = await fetchOverpass(query);
+          trackApiUsage('Overpass', 'fetch_data', true, data?.elements?.length || 0);
         } catch (err) {
+          trackApiUsage('Overpass', 'fetch_data', false, 0);
+          trackError('API Error', err.message, 'Overpass API');
           log(`   [!] Overpass fetch error for ${filename}: ${err.message}`);
           return;
         }
@@ -4058,6 +4233,12 @@ out center tags;`;
           </div>
           <div class="download-link-action">Download</div>
         `;
+
+        // Add click tracking to download link
+        link.addEventListener('click', function() {
+          trackDownload(filename, blob.size, 'individual');
+          trackEngagement('file_download', `${filename} - ${rowCount} results`);
+        });
 
         downloadsDiv.appendChild(link);
         updateResultsContainer();
@@ -4399,6 +4580,10 @@ out center tags;`;
       const resetCategoriesLink = document.getElementById("resetCategoriesLink");
       resetCategoriesLink.addEventListener("click", function(e) {
         e.preventDefault();
+
+        trackButtonClick('Reset Categories');
+        trackPageInteraction('reset_data', 'categories', 'all user categories cleared');
+
         // 1. Clear stored user categories, groups, and hidden groups:
         localStorage.removeItem("userCategories");
         localStorage.removeItem("userGroups");
@@ -4422,9 +4607,12 @@ out center tags;`;
       restoreGroupsLink.addEventListener("click", function(e) {
         e.preventDefault();
 
+        trackButtonClick('Restore Hidden Groups');
+
         const hiddenGroups = loadHiddenGroups();
 
         if (hiddenGroups.length === 0) {
+          trackPageInteraction('restore_groups', 'no_hidden_groups');
           alert("No hidden groups to restore.");
           return;
         }
@@ -4440,6 +4628,8 @@ out center tags;`;
         );
 
         if (confirmed) {
+          trackPageInteraction('restore_groups', 'confirmed', `${hiddenGroups.length} groups restored`);
+
           // Clear hidden groups
           saveHiddenGroups([]);
 
@@ -4447,18 +4637,34 @@ out center tags;`;
           initializeCategoryCheckboxes();
 
           alert(`Successfully restored ${hiddenGroups.length} group(s).`);
+        } else {
+          trackPageInteraction('restore_groups', 'cancelled');
         }
       });
 
       // ======================================================
       // Event Listeners
       // ======================================================
-      runBtn.addEventListener("click", runExport);
+      runBtn.addEventListener("click", function() {
+        // Track export start
+        const selectedCategories = document.querySelectorAll('.category-checkbox:checked');
+        const zipCode = document.getElementById('zipCode').value;
+        const radius = document.getElementById('radiusMiles').value;
+
+        trackButtonClick('Run Export');
+        trackSearchParameters(zipCode, radius, selectedCategories.length);
+        trackExport('manual_export', selectedCategories.length);
+
+        runExport();
+      });
 
       // Clear results button
       const clearResultsBtn = document.getElementById("clearResultsBtn");
       if (clearResultsBtn) {
-        clearResultsBtn.addEventListener("click", clearAllResults);
+        clearResultsBtn.addEventListener("click", function() {
+          trackButtonClick('Clear Results');
+          clearAllResults();
+        });
       }
 
       // ─── Export / Import Configuration ─────────────────────────────────────────────
@@ -4467,6 +4673,8 @@ out center tags;`;
       const exportConfigBtn = document.getElementById("exportConfigBtn");
       exportConfigBtn.addEventListener("click", function () {
         try {
+          trackButtonClick('Export Config');
+
           const userCategories = loadUserCategories(); // { filename: [ { key, value }, … ], … }
           const userGroups     = loadUserGroups();     // [ "customGroup1", "customGroup2", … ]
           const payload = {
@@ -4501,6 +4709,7 @@ out center tags;`;
 
       // When the user clicks "Import Config", forward to the hidden file input
       importConfigBtn.addEventListener("click", function () {
+        trackButtonClick('Import Config');
         importConfigInput.click();
       });
 
@@ -4597,7 +4806,12 @@ out center tags;`;
       // Add event listener for download all button
       const downloadAllFilesBtn = document.getElementById("downloadAllFilesBtn");
       if (downloadAllFilesBtn) {
-        downloadAllFilesBtn.addEventListener("click", downloadAllFiles);
+        downloadAllFilesBtn.addEventListener("click", function() {
+          const downloadLinks = document.querySelectorAll('.download-link');
+          trackButtonClick('Download All Files');
+          trackDownload('all_files.zip', 0, 'bulk');
+          downloadAllFiles();
+        });
       }
 
       // Update radius values in the UI
@@ -4618,6 +4832,7 @@ out center tags;`;
 
         osmProvider.addEventListener("change", function() {
           if (this.checked) {
+            trackSettingsChange('Map Provider', 'Google', 'OpenStreetMap');
             USE_GOOGLE_MAPS = false;
             localStorage.setItem("mapProvider", "osm");
             console.log("Map provider set to:", "OpenStreetMap");
@@ -4627,11 +4842,13 @@ out center tags;`;
 
         googleProvider.addEventListener("change", function() {
           if (this.checked) {
+            trackSettingsChange('Map Provider', 'OpenStreetMap', 'Google');
             USE_GOOGLE_MAPS = true;
             localStorage.setItem("mapProvider", "google");
             console.log("Map provider set to:", "Google Maps");
 
             if (!googleApiKey) {
+              trackError('Configuration Error', 'Google Maps selected without API key');
               const statusEl = document.getElementById("googleKeyStatus");
               statusEl.textContent = "No API Key found";
               statusEl.className = "status-message danger";
@@ -4770,8 +4987,14 @@ out center tags;`;
         openBtn.focus();
       }
 
-      openBtn.addEventListener("click", openStory);
-      closeBtn.addEventListener("click", closeStory);
+      openBtn.addEventListener("click", function() {
+        trackPageInteraction('open_popup', 'story_dialog');
+        openStory();
+      });
+      closeBtn.addEventListener("click", function() {
+        trackPageInteraction('close_popup', 'story_dialog');
+        closeStory();
+      });
 
       // Close on pressing Esc
       document.addEventListener("keydown", function(e) {
@@ -5133,8 +5356,14 @@ out center tags;`;
         openBtn.focus();
       }
 
-      openBtn.addEventListener("click", openInstructions);
-      closeBtn.addEventListener("click", closeInstructions);
+      openBtn.addEventListener("click", function() {
+        trackPageInteraction('open_popup', 'instructions_dialog');
+        openInstructions();
+      });
+      closeBtn.addEventListener("click", function() {
+        trackPageInteraction('close_popup', 'instructions_dialog');
+        closeInstructions();
+      });
 
       // Close on pressing Esc
       document.addEventListener("keydown", function(e) {
