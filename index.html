@@ -1399,13 +1399,14 @@
   <div id="downloads"></div>
 
   <script>
+    // ======================================================
+    // Global Map Provider & Google API Key Management
+    // ======================================================
+    // Initialize map settings from localStorage - make these global
+    let USE_GOOGLE_MAPS = false;
+    let googleApiKey = null;
+
     (function () {
-      // ======================================================
-      // Map Provider & Google API Key Management
-      // ======================================================
-      // Initialize map settings from localStorage
-      let USE_GOOGLE_MAPS = false;
-      let googleApiKey = null;
 
       // ======================================================
       // User Categories Storage Helpers
@@ -1458,8 +1459,8 @@
       // ======================================================
       // Map Settings Initialization
       // ======================================================
-      // Initialize map settings from localStorage
-      function initializeMapSettings() {
+      // Initialize map settings from localStorage - make this global
+      window.initializeMapSettings = function initializeMapSettings() {
         // Read map provider from localStorage
         const storedProvider = localStorage.getItem("mapProvider");
         if (storedProvider === "google") {
@@ -1474,7 +1475,7 @@
         const storedKey = localStorage.getItem("googleApiKey");
         if (storedKey) {
           googleApiKey = storedKey;
-          obscureKeyInInput();
+          window.obscureKeyInInput();
           document.getElementById("removeGoogleKeyBtn").disabled = false;
           document.getElementById("saveGoogleKeyBtn").textContent = "Update Key";
           const statusEl = document.getElementById("googleKeyStatus");
@@ -1485,26 +1486,397 @@
         console.log("Map provider initialized:", USE_GOOGLE_MAPS ? "Google" : "OpenStreetMap");
       }
 
-      // Helper function to obscure API key in input
-      function obscureKeyInInput() {
+      // Helper function to obscure API key in input - make this global
+      window.obscureKeyInInput = function obscureKeyInInput() {
         const input = document.getElementById("googleApiKeyInput");
         input.value = "•".repeat(googleApiKey.length);
         input.setAttribute("data-obscured", "true");
         input.type = "password";
       }
 
-      // fetchGooglePlaces stub for future implementation
-      async function fetchGooglePlaces(filters, lat, lng, radius) {
+      // Define log function globally first so it can be used by fetchGooglePlaces
+      window.log = function log(message) {
+        const timeStamp = new Date().toLocaleTimeString();
+        const logDiv = document.getElementById("log");
+        if (logDiv) {
+          logDiv.textContent += `[${timeStamp}] ${message}\n`;
+          logDiv.scrollTop = logDiv.scrollHeight;
+        } else {
+          console.log(`[${timeStamp}] ${message}`);
+        }
+      }
+
+      // Enhanced Google Places API implementation with comprehensive error handling
+      window.fetchGooglePlaces = async function fetchGooglePlaces(filters, lat, lng, radius) {
         if (!googleApiKey) {
           console.warn("Google API Key missing. Cannot fetch Google Places.");
-          log("[!] Google API key not found; switching back to OpenStreetMap.");
-          return;
+          window.log("[!] Google API key not found; switching back to OpenStreetMap.");
+          return { success: false, error: "No API key", results: [] };
         }
-        // Example structure: build search parameters
+
         const filterStr = filters.map(f => `${f.key}:${f.value}`).join(", ");
-        log(`→ (Google) Searching for ${filterStr} around ${lat},${lng} radius ${radius}m`);
-        // TODO: call Google Places API using fetch with googleApiKey
-        console.log("Google Places API call would be made here with key:", googleApiKey.substring(0, 8) + "...");
+        window.log(`→ (Google) Searching for ${filterStr} around ${lat},${lng} radius ${radius}m`);
+
+        try {
+          // Validate input parameters
+          if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+            throw new Error("Invalid coordinates provided");
+          }
+
+          if (!radius || radius <= 0 || radius > 50000) {
+            throw new Error("Invalid radius (must be between 1-50000 meters)");
+          }
+
+          // Convert OSM filters to Google Places search terms
+          const searchQuery = convertOSMFiltersToGoogleQuery(filters);
+          window.log(`   → Converted to Google query: "${searchQuery}"`);
+
+          // Prepare API request parameters
+          const apiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+          const params = new URLSearchParams({
+            location: `${lat},${lng}`,
+            radius: radius.toString(),
+            keyword: searchQuery,
+            key: googleApiKey
+          });
+
+          window.log(`   → Making API request to Google Places...`);
+          console.log(`Google Places API URL: ${apiUrl}?${params.toString().replace(googleApiKey, 'API_KEY_HIDDEN')}`);
+
+          // Make the API request
+          const response = await fetch(`${apiUrl}?${params.toString()}`);
+
+          // Log response status
+          window.log(`   → API Response Status: ${response.status} ${response.statusText}`);
+
+          if (!response.ok) {
+            // Handle specific HTTP error codes
+            switch (response.status) {
+              case 400:
+                throw new Error("Bad Request - Invalid parameters sent to Google Places API");
+              case 401:
+                throw new Error("Unauthorized - Invalid API key");
+              case 403:
+                throw new Error("Forbidden - API key may be restricted or quota exceeded");
+              case 429:
+                throw new Error("Too Many Requests - API quota exceeded, try again later");
+              case 500:
+                throw new Error("Internal Server Error - Google Places API is experiencing issues");
+              default:
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+          }
+
+          const data = await response.json();
+
+          // Check for API-specific errors in the response
+          if (data.status && data.status !== 'OK') {
+            let errorMessage = `Google Places API Error: ${data.status}`;
+
+            switch (data.status) {
+              case 'ZERO_RESULTS':
+                window.log(`   → No results found for "${searchQuery}" in this area`);
+                return { success: true, error: null, results: [], message: "No results found" };
+              case 'OVER_QUERY_LIMIT':
+                errorMessage = "API quota exceeded. Please check your billing settings.";
+                break;
+              case 'REQUEST_DENIED':
+                errorMessage = "Request denied. Check API key permissions and restrictions.";
+                break;
+              case 'INVALID_REQUEST':
+                errorMessage = "Invalid request parameters.";
+                break;
+              case 'UNKNOWN_ERROR':
+                errorMessage = "Unknown server error. Please try again.";
+                break;
+            }
+
+            if (data.error_message) {
+              errorMessage += ` Details: ${data.error_message}`;
+            }
+
+            throw new Error(errorMessage);
+          }
+
+          // Process successful results
+          const results = data.results || [];
+          window.log(`   → Found ${results.length} places`);
+
+          if (results.length === 0) {
+            window.log(`   → No businesses found matching "${searchQuery}"`);
+            return { success: true, error: null, results: [], message: "No results found" };
+          }
+
+          // Convert Google Places results to our CSV format
+          const csvRows = await convertGooglePlacesToCSV(results, lat, lng);
+          window.log(`   → Converted ${csvRows.length} results to CSV format`);
+
+          // Generate download link
+          const filename = generateFilename(filters);
+          generateDownloadLink(filename, csvRows);
+
+          return {
+            success: true,
+            error: null,
+            results: csvRows,
+            message: `Successfully found ${results.length} places`
+          };
+
+        } catch (error) {
+          // Use the enhanced error reporting function
+          const errorReport = reportGoogleMapsError(error, 'Places API');
+
+          return { success: false, error: errorReport.error, results: [] };
+        }
+      }
+
+      // Helper function to convert OSM filters to Google Places search query
+      function convertOSMFiltersToGoogleQuery(filters) {
+        const queryTerms = [];
+
+        for (const filter of filters) {
+          // Map common OSM tags to Google Places search terms
+          switch (filter.key) {
+            case 'amenity':
+              switch (filter.value) {
+                case 'restaurant': queryTerms.push('restaurant'); break;
+                case 'cafe': queryTerms.push('cafe'); break;
+                case 'bank': queryTerms.push('bank'); break;
+                case 'hospital': queryTerms.push('hospital'); break;
+                case 'pharmacy': queryTerms.push('pharmacy'); break;
+                case 'school': queryTerms.push('school'); break;
+                case 'fuel': queryTerms.push('gas station'); break;
+                case 'dentist': queryTerms.push('dentist'); break;
+                case 'veterinary': queryTerms.push('veterinarian'); break;
+                default: queryTerms.push(filter.value);
+              }
+              break;
+            case 'shop':
+              switch (filter.value) {
+                case 'supermarket': queryTerms.push('grocery store'); break;
+                case 'clothes': queryTerms.push('clothing store'); break;
+                case 'electronics': queryTerms.push('electronics store'); break;
+                case 'bakery': queryTerms.push('bakery'); break;
+                case 'hairdresser': queryTerms.push('hair salon'); break;
+                default: queryTerms.push(filter.value + ' store');
+              }
+              break;
+            case 'office':
+              queryTerms.push(filter.value + ' office');
+              break;
+            case 'tourism':
+              switch (filter.value) {
+                case 'hotel': queryTerms.push('hotel'); break;
+                case 'attraction': queryTerms.push('tourist attraction'); break;
+                default: queryTerms.push(filter.value);
+              }
+              break;
+            default:
+              // For unknown tags, use the value as-is
+              queryTerms.push(filter.value);
+          }
+        }
+
+        return queryTerms.join(' ');
+      }
+
+      // Helper function to convert Google Places results to CSV format
+      async function convertGooglePlacesToCSV(places, searchLat, searchLng) {
+        const csvRows = [];
+
+        for (const place of places) {
+          try {
+            // Extract basic information
+            const name = place.name || 'Unknown';
+            const address = place.vicinity || place.formatted_address || 'Address not available';
+            const lat = place.geometry?.location?.lat || '';
+            const lng = place.geometry?.location?.lng || '';
+
+            // Calculate distance from search center
+            let distance = '';
+            if (lat && lng && searchLat && searchLng) {
+              const distanceKm = calculateDistance(searchLat, searchLng, lat, lng);
+              distance = `${distanceKm.toFixed(2)} km`;
+            }
+
+            // Extract additional details
+            const rating = place.rating || '';
+            const priceLevel = place.price_level !== undefined ? '$'.repeat(place.price_level + 1) : '';
+            const types = place.types ? place.types.join(', ') : '';
+            const placeId = place.place_id || '';
+
+            // Get phone number and website (requires additional API call)
+            let phone = '';
+            let website = '';
+
+            // For now, we'll skip the additional details API call to avoid quota issues
+            // In a production environment, you might want to make a Place Details API call here
+
+            // Create CSV row matching the existing format
+            const row = [
+              name,                    // Business Name
+              address,                 // Address
+              lat,                     // Latitude
+              lng,                     // Longitude
+              distance,                // Distance
+              phone,                   // Phone (empty for now)
+              website,                 // Website (empty for now)
+              types,                   // Business Types
+              rating,                  // Rating
+              priceLevel,              // Price Level
+              placeId                  // Google Place ID
+            ];
+
+            csvRows.push(row);
+
+          } catch (error) {
+            console.warn(`Error processing place result:`, error, place);
+            window.log(`   → Warning: Skipped one result due to data processing error`);
+          }
+        }
+
+        return csvRows;
+      }
+
+      // Helper function to calculate distance between two coordinates
+      function calculateDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371; // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+      }
+
+      // Helper function to generate filename for Google Places results
+      function generateFilename(filters) {
+        const filterStr = filters.map(f => `${f.key}_${f.value}`).join('_');
+        return `google_places_${filterStr}`.replace(/[^a-zA-Z0-9_]/g, '_');
+      }
+
+      // Helper function to generate download link for CSV data
+      function generateDownloadLink(filename, csvRows) {
+        try {
+          // Add CSV header if not present
+          const headerRow = [
+            "Business Name", "Address", "Latitude", "Longitude", "Distance",
+            "Phone", "Website", "Business Types", "Rating", "Price Level", "Place ID"
+          ];
+
+          const allRows = [headerRow, ...csvRows];
+          const csvContent = generateCSVString(allRows);
+
+          // Create blob and download link
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+
+          // Create download link element
+          const downloadLink = document.createElement("a");
+          downloadLink.href = url;
+          downloadLink.download = `${filename}.csv`;
+          downloadLink.textContent = `📥 Download ${filename}.csv (${csvRows.length} results)`;
+          downloadLink.className = "download-link";
+
+          // Add to downloads section
+          const downloadsDiv = document.getElementById("downloads");
+          if (downloadsDiv) {
+            downloadsDiv.appendChild(downloadLink);
+            downloadsDiv.appendChild(document.createElement("br"));
+          }
+
+          window.log(`   → Download link created: ${filename}.csv`);
+
+        } catch (error) {
+          console.error("Error generating download link:", error);
+          window.log(`   [!] Error creating download link: ${error.message}`);
+        }
+      }
+
+      // Helper function to validate Google API key format
+      function validateGoogleApiKey(apiKey) {
+        if (!apiKey || typeof apiKey !== 'string') {
+          return { valid: false, error: "API key is required" };
+        }
+
+        if (apiKey.length < 20) {
+          return { valid: false, error: "API key is too short (minimum 20 characters)" };
+        }
+
+        if (apiKey.length > 100) {
+          return { valid: false, error: "API key is too long (maximum 100 characters)" };
+        }
+
+        // Basic format check for Google API keys
+        if (!/^[A-Za-z0-9_-]+$/.test(apiKey)) {
+          return { valid: false, error: "API key contains invalid characters" };
+        }
+
+        return { valid: true, error: null };
+      }
+
+      // Enhanced error reporting function
+      function reportGoogleMapsError(error, context = '') {
+        const timestamp = new Date().toLocaleTimeString();
+        console.error(`[${timestamp}] Google Maps Error${context ? ` (${context})` : ''}:`, error);
+
+        // Categorize errors and provide helpful suggestions
+        let suggestion = '';
+        const errorMsg = error.message || error.toString();
+
+        if (errorMsg.includes('API key')) {
+          suggestion = 'Check your Google Cloud Console API key settings and restrictions';
+        } else if (errorMsg.includes('quota') || errorMsg.includes('limit')) {
+          suggestion = 'Check your Google Cloud billing and API quotas';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('NetworkError')) {
+          suggestion = 'Check your internet connection and firewall settings';
+        } else if (errorMsg.includes('CORS')) {
+          suggestion = 'This appears to be a browser security restriction';
+        } else if (errorMsg.includes('timeout')) {
+          suggestion = 'The request timed out - try again or check your connection';
+        } else if (errorMsg.includes('Invalid request')) {
+          suggestion = 'Check the search parameters and coordinates';
+        }
+
+        window.log(`   [!] ${errorMsg}`);
+        if (suggestion) {
+          window.log(`   → Suggestion: ${suggestion}`);
+        }
+
+        return { error: errorMsg, suggestion };
+      }
+
+      // Function to test Google API key validity - make it globally accessible
+      window.testGoogleApiKey = async function testGoogleApiKey(apiKey) {
+        try {
+          window.log("   → Testing Google API key validity...");
+
+          // Make a minimal test request to verify the API key works
+          const testUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+          const testParams = new URLSearchParams({
+            location: '42.1543,-88.1362', // Barrington, IL coordinates
+            radius: '1000',
+            key: apiKey
+          });
+
+          const response = await fetch(`${testUrl}?${testParams.toString()}`);
+          const data = await response.json();
+
+          if (response.ok && data.status === 'OK') {
+            window.log("   ✓ API key is valid and working");
+            return { valid: true, error: null };
+          } else if (data.status === 'REQUEST_DENIED') {
+            return { valid: false, error: "API key is invalid or restricted" };
+          } else if (data.status === 'OVER_QUERY_LIMIT') {
+            return { valid: false, error: "API quota exceeded" };
+          } else {
+            return { valid: false, error: data.error_message || `API returned status: ${data.status}` };
+          }
+
+        } catch (error) {
+          return { valid: false, error: `Network error: ${error.message}` };
+        }
       }
 
       // ======================================================
@@ -2744,13 +3116,9 @@
       }
 
       // ======================================================
-      // Logging Utility
+      // Logging Utility (use global log function defined earlier)
       // ======================================================
-      function log(message) {
-        const timeStamp = new Date().toLocaleTimeString();
-        logDiv.textContent += `[${timeStamp}] ${message}\n`;
-        logDiv.scrollTop = logDiv.scrollHeight;
-      }
+      const log = window.log;
 
       // ======================================================
       // Delay Helper
@@ -2969,11 +3337,29 @@ out center tags;`;
           log("=== Export Started (Google Maps) ===");
           if (!googleApiKey) {
             log("[!] Google Maps selected but no API key found. Please save a key to proceed.");
+            log("   → Go to Map Provider Settings to add your Google API key");
             runBtn.disabled = false;
             return;
           }
+
+          // Log Google Maps configuration details
+          log(`   → API Key: ${googleApiKey.substring(0, 8)}...${googleApiKey.substring(googleApiKey.length - 4)}`);
+          log(`   → Search Center: ${window.LAT}, ${window.LNG} (ZIP: ${window.ZIP_CODE})`);
+          log(`   → Search Radius: ${window.RADIUS}m (${Math.round(window.RADIUS / 1609.34)} miles)`);
+
+          // Test the API key before proceeding
+          const keyTest = await window.testGoogleApiKey(googleApiKey);
+          if (!keyTest.valid) {
+            log(`   [!] API key test failed: ${keyTest.error}`);
+            log("   → Please check your Google API key in Map Provider Settings");
+            runBtn.disabled = false;
+            return;
+          }
+
         } else {
           log("=== Export Started (Overpass) ===");
+          log(`   → Search Center: ${window.LAT}, ${window.LNG} (ZIP: ${window.ZIP_CODE})`);
+          log(`   → Search Radius: ${window.RADIUS}m (${Math.round(window.RADIUS / 1609.34)} miles)`);
         }
 
         // Get fresh merged categories including user-defined ones
@@ -2985,18 +3371,51 @@ out center tags;`;
 
           try {
             if (USE_GOOGLE_MAPS) {
-              await fetchGooglePlaces(filters, window.LAT, window.LNG, window.RADIUS);
+              const result = await window.fetchGooglePlaces(filters, window.LAT, window.LNG, window.RADIUS);
+
+              // Handle the response from Google Places API
+              if (result.success) {
+                if (result.results.length > 0) {
+                  log(`   ✓ Successfully processed ${filename}: ${result.results.length} results`);
+                } else {
+                  log(`   ⚠ ${filename}: ${result.message || 'No results found'}`);
+                }
+              } else {
+                log(`   [!] ${filename} failed: ${result.error}`);
+
+                // Optionally offer to fall back to OpenStreetMap for this category
+                if (result.error.includes("quota") || result.error.includes("limit")) {
+                  log(`   → Consider switching to OpenStreetMap or increasing your Google API quota`);
+                } else if (result.error.includes("API key")) {
+                  log(`   → Please check your Google API key configuration`);
+                }
+              }
             } else {
               await processCategory(filename, filters);
             }
             // slight delay to avoid overloading APIs
             await delay(1000);
           } catch (err) {
-            log(`   [!] Error processing ${filename}: ${err.message}`);
+            log(`   [!] Unexpected error processing ${filename}: ${err.message}`);
+            console.error(`Error processing ${filename}:`, err);
           }
         }
 
-        log("=== Export Finished. Download links are above. ===");
+        // Count successful downloads
+        const downloadLinks = document.querySelectorAll("#downloads .download-link");
+        const totalCategories = selectedCheckboxes.length;
+
+        if (USE_GOOGLE_MAPS) {
+          log(`=== Google Maps Export Finished ===`);
+          log(`   → Processed ${totalCategories} categories`);
+          log(`   → Generated ${downloadLinks.length} CSV files`);
+          if (downloadLinks.length < totalCategories) {
+            log(`   → ${totalCategories - downloadLinks.length} categories had no results or errors`);
+          }
+        } else {
+          log("=== Export Finished. Download links are above. ===");
+        }
+
         runBtn.disabled = false;
         enableDownloadAllButton();
       }
@@ -3461,18 +3880,17 @@ out center tags;`;
             } else {
               // Save new key
               const newKey = googleApiKeyInput.value.trim();
-              if (!newKey) {
-                alert("API Key cannot be empty.");
-                return;
-              }
-              if (newKey.length < 20) {
-                alert("Invalid API Key format. Key should be at least 20 characters.");
+
+              // Validate the API key format
+              const validation = validateGoogleApiKey(newKey);
+              if (!validation.valid) {
+                alert(`Invalid API Key: ${validation.error}`);
                 return;
               }
 
               googleApiKey = newKey;
               localStorage.setItem("googleApiKey", newKey);
-              obscureKeyInInput();
+              window.obscureKeyInInput();
               removeGoogleKeyBtn.disabled = false;
               saveGoogleKeyBtn.textContent = "Update Key";
               googleKeyStatus.textContent = "Key saved";
@@ -3528,14 +3946,14 @@ out center tags;`;
               // Hide again after 3 seconds
               setTimeout(() => {
                 if (isKeyVisible) {
-                  obscureKeyInInput();
+                  window.obscureKeyInInput();
                   toggleGoogleKeyVisibility.textContent = "👁️";
                   isKeyVisible = false;
                 }
               }, 3000);
             } else {
               // Hide key immediately
-              obscureKeyInInput();
+              window.obscureKeyInInput();
               toggleGoogleKeyVisibility.textContent = "👁️";
               isKeyVisible = false;
             }
