@@ -50,30 +50,137 @@
       padding: 0 var(--spacing-sm);
     }
 
-    /* Navigation styles - Mobile first */
-    .main-nav {
+    /* Branded Header Styles */
+    .branded-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #003a6b 100%);
+      color: white;
+      padding: var(--spacing-md) var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .header-brand {
+      text-align: center;
+    }
+
+    .brand-logo {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-tagline {
+      font-size: 0.9rem;
+      margin: var(--spacing-xs) 0 0 0;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .header-nav {
       display: flex;
       flex-direction: column;
       gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-md);
-      padding: var(--spacing-sm);
-      background: var(--background-light);
-      border-radius: var(--border-radius);
+      align-items: center;
     }
 
-    .main-nav a {
-      color: var(--primary-color);
+    .header-nav a {
+      color: white;
       text-decoration: none;
       font-weight: 500;
-      padding: var(--spacing-sm);
-      text-align: center;
+      padding: var(--spacing-xs) var(--spacing-sm);
       border-radius: var(--border-radius);
-      transition: background-color 0.2s ease;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .main-nav a:hover {
+    .header-nav a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-contact {
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .header-contact a {
+      color: white;
+      text-decoration: none;
+      margin: 0 var(--spacing-xs);
+      transition: opacity 0.2s ease;
+    }
+
+    .header-contact a:hover {
+      opacity: 1;
       text-decoration: underline;
-      background-color: rgba(0, 75, 141, 0.1);
+    }
+
+    /* Header responsive styles */
+    @media screen and (min-width: 600px) {
+      .header-container {
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+      }
+
+      .header-brand {
+        text-align: left;
+      }
+
+      .header-nav {
+        flex-direction: row;
+        gap: var(--spacing-md);
+      }
+
+      .header-contact {
+        text-align: right;
+      }
+    }
+
+    @media screen and (min-width: 768px) {
+      .branded-header {
+        padding: var(--spacing-lg) var(--spacing-md);
+      }
+
+      .brand-logo {
+        font-size: 2.5rem;
+      }
+
+      .brand-tagline {
+        font-size: 1rem;
+      }
+
+      .header-nav a {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 1rem;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .header-container {
+        grid-template-columns: 2fr auto 2fr;
+      }
+
+      .brand-logo {
+        font-size: 3rem;
+      }
+
+      .header-nav {
+        gap: var(--spacing-lg);
+      }
     }
 
     /* Categories container - Mobile first */
@@ -95,11 +202,12 @@
     }
 
     .key-groups-container {
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-wrap: wrap;
       gap: var(--spacing-sm);
       width: 100%;
-      overflow: hidden;
+      align-items: flex-start;
+      justify-content: flex-start;
     }
 
     .key-group {
@@ -108,12 +216,15 @@
       padding: var(--spacing-sm);
       background-color: var(--background-light);
       box-shadow: var(--shadow-light);
-      min-width: 0; /* Prevents grid items from overflowing */
-      overflow: hidden;
       box-sizing: border-box;
-      width: 100%;
+      /* Dynamic width based on content */
+      width: fit-content;
+      min-width: 200px; /* Minimum width for usability */
+      max-width: 100%; /* Prevent overflow on small screens */
       /* Add smooth transitions for responsive changes */
       transition: all 0.3s ease;
+      /* Ensure proper spacing for delete button */
+      position: relative;
     }
 
     .key-header {
@@ -128,7 +239,7 @@
     .key-header .group-delete-btn {
       display: none;
       position: absolute;
-      right: 30px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--danger-color);
@@ -140,6 +251,8 @@
       border-radius: var(--border-radius);
       background: rgba(255, 255, 255, 0.9);
       transition: all 0.2s ease;
+      /* Ensure the delete button stays within the container */
+      z-index: 10;
     }
 
     .key-header .group-delete-btn:hover {
@@ -222,18 +335,141 @@
       border: 1px solid var(--light-border);
     }
 
-    .download-link {
-      margin: var(--spacing-sm) 0;
+    /* Results Container Styles */
+    .results-container {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-large);
+      padding: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+      background: linear-gradient(135deg, #f8fffe 0%, var(--background-light) 100%);
+      box-shadow: var(--shadow-light);
+      display: none; /* Hidden by default */
+    }
+
+    .results-container.has-results {
       display: block;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--light-border);
+    }
+
+    .results-header h3 {
       color: var(--primary-color);
-      text-decoration: none;
-      padding: var(--spacing-xs);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .results-count {
+      background: var(--primary-color);
+      color: white;
+      padding: var(--spacing-xs) var(--spacing-sm);
       border-radius: var(--border-radius);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .results-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+    }
+
+    .clear-results-btn {
+      background: transparent;
+      border: 1px solid var(--danger-color);
+      color: var(--danger-color);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--border-radius);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .clear-results-btn:hover {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    .downloads-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-sm);
+    }
+
+    .download-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-md);
+      background: white;
+      border: 1px solid var(--light-border);
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      color: var(--text-color);
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .download-link:hover {
-      text-decoration: underline;
-      background: rgba(0, 75, 141, 0.1);
+      text-decoration: none;
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-light);
+      transform: translateY(-1px);
+    }
+
+    .download-link-content {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex: 1;
+    }
+
+    .download-link-icon {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+
+    .download-link-info {
+      flex: 1;
+    }
+
+    .download-link-title {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0 0 var(--spacing-xs) 0;
+      font-size: 0.95rem;
+    }
+
+    .download-link-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .download-link-action {
+      color: var(--primary-color);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: 1px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .download-link:hover .download-link-action {
+      background: var(--primary-color);
+      color: white;
     }
     /* Key Header and Inline Add Styles */
     .key-header {
@@ -242,6 +478,8 @@
       align-items: center;
       flex-wrap: wrap;
       gap: var(--spacing-xs);
+      /* Add padding to ensure space for delete button */
+      padding-right: 35px;
     }
 
     .key-header .add-new {
@@ -821,14 +1059,25 @@
         font-size: 0.75rem;
       }
 
-      .main-nav {
-        flex-direction: column;
-        gap: var(--spacing-xs);
+      .branded-header {
+        padding: var(--spacing-sm);
       }
 
-      .main-nav a {
+      .brand-logo {
+        font-size: 1.5rem;
+      }
+
+      .brand-tagline {
+        font-size: 0.75rem;
+      }
+
+      .header-nav a {
         font-size: 0.8rem;
         padding: var(--spacing-xs);
+      }
+
+      .header-contact {
+        font-size: 0.75rem;
       }
 
       h1 {
@@ -842,14 +1091,15 @@
       }
 
       .key-groups-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: var(--spacing-xs);
         width: 100%;
       }
 
       .key-group {
+        width: 100%;
         min-width: 0;
-        overflow: hidden;
+        max-width: 100%;
       }
 
       .key-items.columns-2,
@@ -891,9 +1141,13 @@
         padding: var(--spacing-sm);
       }
 
-      .main-nav {
-        flex-direction: row;
-        justify-content: space-around;
+      .header-container {
+        grid-template-columns: 1fr auto;
+        gap: var(--spacing-sm);
+      }
+
+      .header-contact {
+        display: none; /* Hide contact on small screens */
       }
 
       .categories-container {
@@ -901,13 +1155,14 @@
       }
 
       .key-groups-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         width: 100%;
       }
 
       .key-group {
+        width: 100%;
         min-width: 0;
-        overflow: hidden;
+        max-width: 100%;
       }
 
       .key-items.columns-2 {
@@ -941,13 +1196,14 @@
       }
 
       .key-groups-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         width: 100%;
       }
 
       .key-group {
+        width: 100%;
         min-width: 0;
-        overflow: hidden;
+        max-width: 100%;
       }
 
       .key-items.columns-3 {
@@ -976,13 +1232,14 @@
       }
 
       .key-groups-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         width: 100%;
       }
 
       .key-group {
+        width: 100%;
         min-width: 0;
-        overflow: hidden;
+        max-width: 100%;
       }
 
       .key-items.columns-3 {
@@ -1001,15 +1258,15 @@
       }
 
       .key-groups-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: var(--spacing-sm);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .key-items.columns-3 {
@@ -1043,16 +1300,18 @@
       }
 
       .key-groups-container {
-        grid-template-columns: repeat(2, 1fr);
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-sm);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
-        /* Ensure equal width distribution */
-        width: 100%;
+        /* Allow groups to size based on content, but limit to reasonable widths */
+        width: fit-content;
+        min-width: 250px;
+        max-width: calc(50% - var(--spacing-sm) / 2);
+        flex: 0 1 auto;
       }
 
       .key-items.columns-3 {
@@ -1081,9 +1340,8 @@
         padding: var(--spacing-lg);
       }
 
-      .main-nav {
-        flex-direction: row;
-        justify-content: space-between;
+      .header-contact {
+        display: block; /* Show contact info on tablets and up */
       }
 
       .categories-container {
@@ -1091,15 +1349,18 @@
       }
 
       .key-groups-container {
-        grid-template-columns: repeat(2, 1fr);
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-md);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
-        width: 100%;
+        /* Allow groups to size based on content, but limit to reasonable widths */
+        width: fit-content;
+        min-width: 280px;
+        max-width: calc(50% - var(--spacing-md) / 2);
+        flex: 0 1 auto;
       }
 
       .actions {
@@ -1131,15 +1392,18 @@
       }
 
       .key-groups-container {
-        grid-template-columns: repeat(3, 1fr);
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-md);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
-        width: 100%;
+        /* Allow groups to size based on content, but limit to reasonable widths */
+        width: fit-content;
+        min-width: 250px;
+        max-width: calc(33.333% - var(--spacing-md) * 2 / 3);
+        flex: 0 1 auto;
       }
 
       .instructions-dialog {
@@ -1156,25 +1420,25 @@
         margin: 0 auto;
       }
 
-      .main-nav {
-        justify-content: flex-start;
-        gap: var(--spacing-lg);
-      }
+      /* Header styles already defined in base responsive rules */
 
       .categories-container {
         overflow: hidden;
       }
 
       .key-groups-container {
-        grid-template-columns: repeat(3, 1fr);
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-lg);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
-        width: 100%;
+        /* Allow groups to size based on content, but limit to reasonable widths */
+        width: fit-content;
+        min-width: 300px;
+        max-width: calc(33.333% - var(--spacing-lg) * 2 / 3);
+        flex: 0 1 auto;
       }
 
       .key-items.columns-3 {
@@ -1209,15 +1473,18 @@
       }
 
       .key-groups-container {
-        grid-template-columns: repeat(4, 1fr);
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-lg);
         width: 100%;
       }
 
       .key-group {
-        min-width: 0;
-        overflow: hidden;
-        width: 100%;
+        /* Allow groups to size based on content, but limit to reasonable widths */
+        width: fit-content;
+        min-width: 280px;
+        max-width: calc(25% - var(--spacing-lg) * 3 / 4);
+        flex: 0 1 auto;
       }
 
       .instructions-dialog {
@@ -1255,12 +1522,304 @@
       }
     }
 
+    /* Page Header Styles */
+    .page-header {
+      background: linear-gradient(135deg, var(--background-light) 0%, #f0f8ff 100%);
+      border: 1px solid var(--light-border);
+      border-radius: var(--border-radius-large);
+      padding: var(--spacing-lg) var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-light);
+    }
+
+    .page-header h2 {
+      color: var(--primary-color);
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 var(--spacing-md) 0;
+      text-align: center;
+    }
+
+    .page-header .page-description {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-light);
+      text-align: center;
+      margin: 0;
+    }
+
+    .page-header .page-description a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .page-header .page-description a:hover {
+      color: #003a6b;
+      text-decoration: underline;
+    }
+
+    .page-controls {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      align-items: center;
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--light-border);
+    }
+
+    .page-controls .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .page-controls input[type="number"],
+    .page-controls input[type="text"] {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .page-controls .coords-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: var(--spacing-xs);
+    }
+
+    .page-controls .action-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      justify-content: center;
+      margin-top: var(--spacing-sm);
+    }
+
+    .page-controls .action-links a {
+      font-size: 0.9rem;
+      color: var(--primary-color);
+      text-decoration: none;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .page-controls .action-links a:hover {
+      background: rgba(0, 75, 141, 0.1);
+      border-color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .page-controls .action-links a#resetCategoriesLink {
+      color: var(--danger-color);
+    }
+
+    .page-controls .action-links a#resetCategoriesLink:hover {
+      background: rgba(211, 47, 47, 0.1);
+      border-color: var(--danger-color);
+    }
+
+    .page-controls .action-links a#restoreGroupsLink {
+      color: var(--success-color);
+    }
+
+    .page-controls .action-links a#restoreGroupsLink:hover {
+      background: rgba(25, 118, 210, 0.1);
+      border-color: var(--success-color);
+    }
+
+    /* Footer Styles */
+    footer {
+      margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg) var(--spacing-sm);
+      background: linear-gradient(135deg, var(--background-light) 0%, var(--background-lighter) 100%);
+      border-top: 2px solid var(--light-border);
+      border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+      box-shadow: var(--shadow-light);
+    }
+
+    .footer-settings {
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-lg);
+      border-bottom: 1px solid var(--light-border);
+    }
+
+    .footer-settings h3 {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 var(--spacing-md) 0;
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+      text-align: center;
+    }
+
+    .footer-section h3 {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--light-border);
+      padding-bottom: var(--spacing-xs);
+    }
+
+    .footer-section p,
+    .footer-section ul {
+      margin: 0 0 var(--spacing-sm) 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-light);
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-section ul li {
+      margin: var(--spacing-xs) 0;
+    }
+
+    .footer-section a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-section a:hover {
+      color: #003a6b;
+      text-decoration: underline;
+    }
+
+    .footer-bottom {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--light-border);
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer-bottom p {
+      margin: 0;
+    }
+
+    /* Results Container responsive styles */
+    @media screen and (min-width: 600px) {
+      .downloads-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .results-header {
+        flex-direction: row;
+      }
+
+      .results-actions {
+        flex-direction: row;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .downloads-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Page Header responsive styles */
+    @media screen and (min-width: 600px) {
+      .page-header h2 {
+        font-size: 1.75rem;
+      }
+
+      .page-controls {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .page-controls .control-group {
+        flex-direction: row;
+      }
+    }
+
+    @media screen and (min-width: 768px) {
+      .page-header {
+        padding: var(--spacing-xl) var(--spacing-lg);
+      }
+
+      .page-header h2 {
+        font-size: 2rem;
+      }
+
+      .page-header .page-description {
+        font-size: 1.1rem;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .page-header h2 {
+        font-size: 2.25rem;
+      }
+    }
+
+    /* Footer responsive styles */
+    @media screen and (min-width: 600px) {
+      .footer-settings {
+        text-align: left;
+      }
+
+      .footer-settings .settings-section {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
+
+      .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+        text-align: left;
+      }
+    }
+
+    @media screen and (min-width: 768px) {
+      footer {
+        padding: var(--spacing-xl) var(--spacing-md);
+      }
+
+      .footer-content {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .footer-content {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
     /* Print styles */
     @media print {
-      .main-nav,
+      .branded-header,
+      .page-header,
       .actions,
+      .results-container,
       .hidden-overlay,
-      .visible-overlay {
+      .visible-overlay,
+      footer {
         display: none !important;
       }
 
@@ -1337,41 +1896,57 @@
     </div>
   </div>
 
-  <nav class="main-nav">
-    <a href="#" id="openInstructions">Instructions</a>
-    <a href="#" id="openPageStory">The story of this Page</a>
-  </nav>
-  
-  <h1>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h1>
-  <p>
-    This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data in a
-    <input type="number" id="radiusMiles" value="30" min="1" max="100"> mi
-    (<span id="radiusMeters">48280</span>m) radius around ZIP
-    <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates">.
-    <br><small class="coords-info">Current coordinates: <span id="coordsDisplay">42.1543, -88.1362</span></small>
-    <br>Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link">Ask ChatGPT for OSM tags</a><a href="#" id="resetCategoriesLink">Reset Categories</a><a href="#" id="restoreGroupsLink">Restore Hidden Groups</a>
-  </p>
+  <header class="branded-header">
+    <div class="header-container">
+      <div class="header-brand">
+        <h1 class="brand-logo">🏢 myTech.Today</h1>
+        <p class="brand-tagline">Professional MSP Services • Barrington, IL • (847) 767-4914</p>
+      </div>
 
-  <!-- Begin Map Provider & Google API Key Settings -->
-  <div id="mapProviderContainer" class="settings-section">
-    <label>Map Provider:</label>
-    <div class="map-provider-toggle">
-      <input type="radio" name="mapProvider" id="osmProvider" value="osm" checked>
-      <label for="osmProvider">OpenStreetMap</label>
-      <input type="radio" name="mapProvider" id="googleProvider" value="google">
-      <label for="googleProvider">Google Maps</label>
+      <nav class="header-nav">
+        <a href="#" id="openInstructions">📖 Instructions</a>
+        <a href="#" id="openPageStory">📜 Story</a>
+      </nav>
+
+      <div class="header-contact">
+        <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">mytech.today</a>
+        <a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">sales@mytech.today</a>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div id="googleKeyContainer" class="settings-section">
-    <label for="googleApiKeyInput">Google API Key:</label>
-    <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
-    <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
-    <button type="button" id="saveGoogleKeyBtn">Save Key</button>
-    <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
-    <span id="googleKeyStatus" class="status-message"></span>
-  </div>
-  <!-- End Map Provider & Google API Key Settings -->
+  <!-- Page Header Section -->
+  <section class="page-header">
+    <h2>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h2>
+    <p class="page-description">
+      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate CSVs. No API key is required for basic functionality.
+    </p>
+
+    <div class="page-controls">
+      <div class="control-group">
+        <label for="radiusMiles">Search radius:</label>
+        <input type="number" id="radiusMiles" value="30" min="1" max="100" title="Search radius in miles"> mi
+        (<span id="radiusMeters">48280</span>m)
+      </div>
+
+      <div class="control-group">
+        <label for="zipCode">around ZIP:</label>
+        <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates">
+      </div>
+
+      <div class="coords-info">
+        Current coordinates: <span id="coordsDisplay">42.1543, -88.1362</span>
+      </div>
+
+      <div class="action-links">
+        <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer">Ask ChatGPT for OSM tags</a>
+        <a href="#" id="resetCategoriesLink">Reset Categories</a>
+        <a href="#" id="restoreGroupsLink">Restore Hidden Groups</a>
+      </div>
+    </div>
+  </section>
+
+  <main>
 
   <div class="categories-container">
     <div class="categories-header">
@@ -1396,7 +1971,99 @@
   </div>
 
   <div id="log"></div>
-  <div id="downloads"></div>
+
+  <!-- Results Container -->
+  <div id="resultsContainer" class="results-container">
+    <div class="results-header">
+      <h3>
+        📥 Export Results
+        <span id="resultsCount" class="results-count">0 files</span>
+      </h3>
+      <div class="results-actions">
+        <button type="button" id="clearResultsBtn" class="clear-results-btn">Clear All</button>
+      </div>
+    </div>
+    <div id="downloads" class="downloads-grid"></div>
+  </div>
+  </main>
+
+  <footer>
+    <!-- Map Provider & API Settings Section -->
+    <div class="footer-settings">
+      <h3>⚙️ Map Provider Settings</h3>
+
+      <div id="mapProviderContainer" class="settings-section">
+        <label>Map Provider:</label>
+        <div class="map-provider-toggle">
+          <input type="radio" name="mapProvider" id="osmProvider" value="osm" checked>
+          <label for="osmProvider">OpenStreetMap</label>
+          <input type="radio" name="mapProvider" id="googleProvider" value="google">
+          <label for="googleProvider">Google Maps</label>
+        </div>
+      </div>
+
+      <div id="googleKeyContainer" class="settings-section">
+        <label for="googleApiKeyInput">Google API Key:</label>
+        <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
+        <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
+        <button type="button" id="saveGoogleKeyBtn">Save Key</button>
+        <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
+        <span id="googleKeyStatus" class="status-message"></span>
+      </div>
+    </div>
+
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About This Tool</h3>
+        <p>Export business data using OpenStreetMap's Overpass API. No API key required for basic functionality.</p>
+        <ul>
+          <li><a href="#" id="openInstructionsFooter">📖 Instructions</a></li>
+          <li><a href="#" id="openPageStoryFooter">📜 Development Story</a></li>
+          <li><a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">💻 Source Code</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Data Sources</h3>
+        <p>Powered by open data and APIs</p>
+        <ul>
+          <li><a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">🗺️ OpenStreetMap</a></li>
+          <li><a href="https://overpass-api.de/" target="_blank" rel="noopener noreferrer">🔍 Overpass API</a></li>
+          <li><a href="https://developers.google.com/maps/documentation/places/web-service" target="_blank" rel="noopener noreferrer">📍 Google Places API</a></li>
+          <li><a href="https://nominatim.openstreetmap.org/" target="_blank" rel="noopener noreferrer">📮 Nominatim Geocoding</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Technology Stack</h3>
+        <p>Built with modern web technologies</p>
+        <ul>
+          <li>🌐 HTML5 & CSS3</li>
+          <li>⚡ Vanilla JavaScript</li>
+          <li>📱 Responsive Design</li>
+          <li>💾 Local Storage</li>
+          <li>📦 JSZip Library</li>
+          <li>📝 Marked.js (Markdown)</li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3>Contact & Support</h3>
+        <p>Professional MSP services in Chicagoland</p>
+        <ul>
+          <li><a href="https://mytech.today" target="_blank" rel="noopener noreferrer">🏢 myTech.Today</a></li>
+          <li><a href="tel:18477674914" target="_blank" rel="noopener noreferrer">📞 (847) 767-4914</a></li>
+          <li><a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">sales@mytech.today</a></li>
+          <li>📍 Barrington, IL</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 myTech.Today. All rights reserved. | Built with ❤️ using AI-assisted development</p>
+      <p><a href="https://www.augmentcode.com/" target="_blank" rel="noopener noreferrer">Powered by Augment</a>, <a href="https://chat.openai.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>, <a href="https://code.visualstudio.com/" target="_blank" rel="noopener noreferrer">VS Code</a> &amp; <a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+    </div>
+  </footer>
 
   <script>
     // ======================================================
@@ -1772,18 +2439,29 @@
           const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
           const url = URL.createObjectURL(blob);
 
-          // Create download link element
+          // Create enhanced download link element
           const downloadLink = document.createElement("a");
           downloadLink.href = url;
           downloadLink.download = `${filename}.csv`;
-          downloadLink.textContent = `📥 Download ${filename}.csv (${csvRows.length} results)`;
           downloadLink.className = "download-link";
+
+          // Create the enhanced download link structure
+          downloadLink.innerHTML = `
+            <div class="download-link-content">
+              <div class="download-link-icon">📊</div>
+              <div class="download-link-info">
+                <div class="download-link-title">${filename}.csv</div>
+                <div class="download-link-meta">${csvRows.length} results • ${(blob.size / 1024).toFixed(1)} KB</div>
+              </div>
+            </div>
+            <div class="download-link-action">Download</div>
+          `;
 
           // Add to downloads section
           const downloadsDiv = document.getElementById("downloads");
           if (downloadsDiv) {
             downloadsDiv.appendChild(downloadLink);
-            downloadsDiv.appendChild(document.createElement("br"));
+            updateResultsContainer();
           }
 
           window.log(`   → Download link created: ${filename}.csv`);
@@ -1791,6 +2469,36 @@
         } catch (error) {
           console.error("Error generating download link:", error);
           window.log(`   [!] Error creating download link: ${error.message}`);
+        }
+      }
+
+      // Helper function to update the results container visibility and count
+      window.updateResultsContainer = function updateResultsContainer() {
+        const resultsContainer = document.getElementById("resultsContainer");
+        const downloadsDiv = document.getElementById("downloads");
+        const resultsCount = document.getElementById("resultsCount");
+
+        if (!resultsContainer || !downloadsDiv || !resultsCount) return;
+
+        const downloadLinks = downloadsDiv.querySelectorAll(".download-link");
+        const count = downloadLinks.length;
+
+        if (count > 0) {
+          resultsContainer.classList.add("has-results");
+          resultsCount.textContent = `${count} file${count !== 1 ? 's' : ''}`;
+        } else {
+          resultsContainer.classList.remove("has-results");
+          resultsCount.textContent = "0 files";
+        }
+      }
+
+      // Helper function to clear all results
+      window.clearAllResults = function clearAllResults() {
+        const downloadsDiv = document.getElementById("downloads");
+        if (downloadsDiv) {
+          downloadsDiv.innerHTML = "";
+          updateResultsContainer();
+          window.log("All download links cleared.");
         }
       }
 
@@ -3290,9 +3998,23 @@ out center tags;`;
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = filename;
-        link.textContent = `Download ${filename}`;
         link.className = "download-link";
+
+        // Create the enhanced download link structure
+        const rowCount = rows.length - 1; // Subtract header row
+        link.innerHTML = `
+          <div class="download-link-content">
+            <div class="download-link-icon">📊</div>
+            <div class="download-link-info">
+              <div class="download-link-title">${filename}</div>
+              <div class="download-link-meta">${rowCount} results • ${(blob.size / 1024).toFixed(1)} KB</div>
+            </div>
+          </div>
+          <div class="download-link-action">Download</div>
+        `;
+
         downloadsDiv.appendChild(link);
+        updateResultsContainer();
 
         log(`✔ Finished category: ${filename} (${rows.length - 1} rows)`);
       }
@@ -3303,7 +4025,7 @@ out center tags;`;
       async function runExport() {
         // Clear log and download links
         logDiv.textContent = "";
-        downloadsDiv.innerHTML = "";
+        clearAllResults();
         
         // Get selected categories
         const selectedCheckboxes = document.querySelectorAll('.category-checkbox:checked');
@@ -3680,9 +4402,15 @@ out center tags;`;
       });
 
       // ======================================================
-      // Event Listener
+      // Event Listeners
       // ======================================================
       runBtn.addEventListener("click", runExport);
+
+      // Clear results button
+      const clearResultsBtn = document.getElementById("clearResultsBtn");
+      if (clearResultsBtn) {
+        clearResultsBtn.addEventListener("click", clearAllResults);
+      }
 
       // ─── Export / Import Configuration ─────────────────────────────────────────────
 
@@ -4389,6 +5117,28 @@ out center tags;`;
           console.log('✅ marked.js library loaded successfully');
         } else {
           console.error('❌ marked.js library not loaded');
+        }
+      });
+
+      // Add footer link functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        // Footer Instructions link
+        const footerInstructionsBtn = document.getElementById("openInstructionsFooter");
+        if (footerInstructionsBtn) {
+          footerInstructionsBtn.addEventListener("click", openInstructions);
+        }
+
+        // Footer Page Story link
+        const footerPageStoryBtn = document.getElementById("openPageStoryFooter");
+        if (footerPageStoryBtn) {
+          footerPageStoryBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            // Trigger the existing page story functionality
+            const pageStoryBtn = document.getElementById("openPageStory");
+            if (pageStoryBtn) {
+              pageStoryBtn.click();
+            }
+          });
         }
       });
     })();
