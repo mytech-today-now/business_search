@@ -355,6 +355,12 @@
       color: #d32f2f;
       font-weight: 500;
     }
+
+    #restoreGroupsLink {
+      margin-left: 10px;
+      color: #1976d2;
+      font-weight: 500;
+    }
   </style>
   <!-- Add JSZip library in the head section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -369,13 +375,12 @@
       </header>
       <div class="story-content">
         <ul>
-          <li>This page was originally described as a ChatGPT prompt: 
-            <a href="https://chatgpt.com/share/683fae9c-f324-8013-b4ba-b9b978770b26" target="_blank">prompt for ChatGPT</a>.</li>
-          <li>ChatGPT generated a suitable Python program to accomplish the task, but to avoid Python dependencies, the reply was refactored as an HTML page.</li>
+          <li>This page was originally described as a <a href="https://chatgpt.com/share/683fae9c-f324-8013-b4ba-b9b978770b26" target="_blank">ChatGPT prompt</a>.</li>
+          <li>ChatGPT generated a suitable Python program to accomplish the task, but to avoid Python dependencies, the reply was refactored as an HTML page.  This allows anyone to use the page without needing to install Python.</li>
+          <li>Again, to avoid Google Dependencies, the mapping engine was switched from Google Maps to OpenStreetMap.  This allows for anyone to use the page without needing a Google API key.</li>
           <li>The resulting code was copy-and-pasted into VS Code and opened with <a href="https://www.augmentcode.com/" target="_blank">Augment</a>.</li>
-          <li>Within VS Code + Augment, this project was massaged and refactored multiple times.</li>
-          <li>The code was also pushed to GitHub: 
-            <a href="https://github.com/mytech-today-now/business_search" target="_blank">mytech-today-now/business_search</a>.</li>
+          <li>Within VS Code + Augment, this project was massaged and refactored multiple times.  Ultimately, the use of the Augment AI Agent is the best way to '<i>vibe code</i>.'</li>
+          <li>The code was also pushed to GitHub: <a href="https://github.com/mytech-today-now/business_search" target="_blank">mytech-today-now/business_search</a>.</li>
           <li>A separate ChatGPT prompt produced 35 business types that benefit from MSP services in Chicagoland; the reply was reformatted as a comma-separated list and re-fed into ChatGPT/Augment.</li>
           <li>On June 1, 2025, the code was refactored 29 times using Augment (50 total prompts to generate and refine code). Additional prompts refined and improved the final version.</li>
           <li>Finally, the entire codebase was fed back into ChatGPT for further prompt generation, then re-applied in Augment. This iterative AI-driven workflow has been an extremely effective way to "vibe code."</li>
@@ -402,7 +407,7 @@
     (<span id="radiusMeters">48280</span>m) radius around ZIP
     <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates">.
     <br><small class="coords-info">Current coordinates: <span id="coordsDisplay">42.1543, -88.1362</span></small>
-    <br>Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link">Ask ChatGPT for OSM tags</a><a href="#" id="resetCategoriesLink">Reset Categories</a>
+    <br>Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link">Ask ChatGPT for OSM tags</a><a href="#" id="resetCategoriesLink">Reset Categories</a><a href="#" id="restoreGroupsLink">Restore Hidden Groups</a>
   </p>
 
   <div class="categories-container">
@@ -1303,7 +1308,79 @@
           return false;
         }
       }
-      
+
+      // ======================================================
+      // Hidden Groups Storage Helpers
+      // ======================================================
+      function loadHiddenGroups() {
+        try {
+          const stored = localStorage.getItem("hiddenGroups");
+          if (!stored) return [];
+          return JSON.parse(stored) || [];
+        } catch (err) {
+          console.error("Error loading hidden groups:", err);
+          return [];
+        }
+      }
+
+      function saveHiddenGroups(hiddenGroups) {
+        try {
+          localStorage.setItem("hiddenGroups", JSON.stringify(hiddenGroups));
+          return true;
+        } catch (err) {
+          console.error("Error saving hidden groups:", err);
+          return false;
+        }
+      }
+
+      // ======================================================
+      // Delete Group Functionality
+      // ======================================================
+      function deleteGroup(groupKey) {
+        try {
+          // 1. Remove all user-defined categories in this group
+          const userCategories = loadUserCategories();
+          const categoriesToDelete = [];
+
+          Object.entries(userCategories).forEach(([filename, filters]) => {
+            if (filters[0] && filters[0].key === groupKey) {
+              categoriesToDelete.push(filename);
+            }
+          });
+
+          // Delete the user categories
+          categoriesToDelete.forEach(filename => {
+            delete userCategories[filename];
+          });
+          saveUserCategories(userCategories);
+
+          // 2. Remove the group from user groups if it's a custom group
+          const userGroups = loadUserGroups();
+          const groupIndex = userGroups.indexOf(groupKey);
+          if (groupIndex > -1) {
+            userGroups.splice(groupIndex, 1);
+            saveUserGroups(userGroups);
+          }
+
+          // 3. For built-in groups, we'll hide them by adding to a "hidden groups" list
+          const hiddenGroups = loadHiddenGroups();
+          if (!hiddenGroups.includes(groupKey)) {
+            hiddenGroups.push(groupKey);
+            saveHiddenGroups(hiddenGroups);
+          }
+
+          // 4. Refresh the UI
+          initializeCategoryCheckboxes();
+
+          // 5. Show success message
+          console.log(`Group "${groupKey}" deleted successfully`);
+
+        } catch (error) {
+          console.error("Error deleting group:", error);
+          alert("An error occurred while deleting the group. Please try again.");
+        }
+      }
+
       // ======================================================
       // Additional Categories
       // ======================================================
@@ -1422,7 +1499,7 @@
       }
 
       // ======================================================
-      // Build All Groups (including user-defined ones)
+      // Build All Groups (including user-defined ones, excluding hidden)
       // ======================================================
       function buildAllGroups() {
         // 1. Collect all built-in "key" group names:
@@ -1434,11 +1511,13 @@
         });
         // 2. Get any user-defined group names:
         const userGroups = loadUserGroups();
-        // 3. Merge built-in keys and userGroups (ensure unique):
+        // 3. Get hidden groups to filter out:
+        const hiddenGroups = loadHiddenGroups();
+        // 4. Merge built-in keys and userGroups (ensure unique), excluding hidden:
         return [
           ...Array.from(builtInKeys),
           ...userGroups.filter(g => !builtInKeys.has(g))
-        ];
+        ].filter(group => !hiddenGroups.includes(group));
       }
       
       // ======================================================
@@ -1464,10 +1543,16 @@
       // Group categories by their key (amenity, shop, office, etc.)
       function groupCategoriesByKey(categoriesObj) {
         const groupedCategories = {};
+        const hiddenGroups = loadHiddenGroups();
 
         Object.entries(categoriesObj).forEach(([filename, filters]) => {
           // Use the first filter's key as the group key
           const groupKey = filters[0].key;
+
+          // Skip hidden groups
+          if (hiddenGroups.includes(groupKey)) {
+            return;
+          }
 
           if (!groupedCategories[groupKey]) {
             groupedCategories[groupKey] = [];
@@ -1479,10 +1564,10 @@
           });
         });
 
-        // Ensure all user-defined groups appear even if they have no categories
+        // Ensure all user-defined groups appear even if they have no categories (but not hidden ones)
         const userGroups = loadUserGroups();
         userGroups.forEach(groupKey => {
-          if (!groupedCategories[groupKey]) {
+          if (!groupedCategories[groupKey] && !hiddenGroups.includes(groupKey)) {
             groupedCategories[groupKey] = [];
           }
         });
@@ -1981,6 +2066,28 @@ out center tags;`;
             updateSelectAllCheckbox();
           }
         });
+
+        // Delegate click on group delete button to delete entire group
+        allCategoriesContainer.addEventListener('click', function(e) {
+          if (e.target.classList.contains('group-delete-btn')) {
+            const groupKey = e.target.dataset.key;
+            const groupName = groupKey.charAt(0).toUpperCase() + groupKey.slice(1);
+
+            // Show confirmation dialog
+            const confirmed = confirm(
+              `Are you sure you want to delete the entire "${groupName}" group?\n\n` +
+              `This will remove:\n` +
+              `• The group itself\n` +
+              `• All custom categories in this group\n\n` +
+              `Built-in categories will be preserved but the group will be hidden.\n\n` +
+              `This action cannot be undone.`
+            );
+
+            if (confirmed) {
+              deleteGroup(groupKey);
+            }
+          }
+        });
       }
 
       // ======================================================
@@ -2058,9 +2165,10 @@ out center tags;`;
       const resetCategoriesLink = document.getElementById("resetCategoriesLink");
       resetCategoriesLink.addEventListener("click", function(e) {
         e.preventDefault();
-        // 1. Clear stored user categories and groups:
+        // 1. Clear stored user categories, groups, and hidden groups:
         localStorage.removeItem("userCategories");
         localStorage.removeItem("userGroups");
+        localStorage.removeItem("hiddenGroups");
 
         // 2. Remove any header-level new-entry if present:
         const headerContainer = document.getElementById("headerNewEntryContainer");
@@ -2071,6 +2179,41 @@ out center tags;`;
 
         // 4. Rebuild category checkboxes from scratch:
         initializeCategoryCheckboxes();
+      });
+
+      // ======================================================
+      // Restore Hidden Groups Functionality
+      // ======================================================
+      const restoreGroupsLink = document.getElementById("restoreGroupsLink");
+      restoreGroupsLink.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        const hiddenGroups = loadHiddenGroups();
+
+        if (hiddenGroups.length === 0) {
+          alert("No hidden groups to restore.");
+          return;
+        }
+
+        // Show confirmation dialog with list of hidden groups
+        const groupsList = hiddenGroups.map(group =>
+          `• ${group.charAt(0).toUpperCase() + group.slice(1)}`
+        ).join('\n');
+
+        const confirmed = confirm(
+          `Restore the following hidden groups?\n\n${groupsList}\n\n` +
+          `This will make them visible again in the categories list.`
+        );
+
+        if (confirmed) {
+          // Clear hidden groups
+          saveHiddenGroups([]);
+
+          // Refresh the UI
+          initializeCategoryCheckboxes();
+
+          alert(`Successfully restored ${hiddenGroups.length} group(s).`);
+        }
       });
 
       // ======================================================
