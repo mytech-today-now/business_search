@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parser Output Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-case {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            padding: 20px;
+        }
+        .input {
+            background: #f5f5f5;
+            padding: 10px;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            border: 1px solid #ddd;
+        }
+        .output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+        }
+        .raw-html {
+            background: #fff8dc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        ul, ol {
+            margin: 0 0 1rem 0;
+            padding-left: 2rem;
+        }
+        li {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Markdown Parser Output Test</h1>
+    
+    <div class="test-case">
+        <h2>Test 1: Simple Numbered List with Nested Items</h2>
+        <div class="input" id="test1-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test1-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test1-raw"></div>
+    </div>
+
+    <div class="test-case">
+        <h2>Test 2: Multi-line List Items</h2>
+        <div class="input" id="test2-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test2-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test2-raw"></div>
+    </div>
+
+    <div class="test-case">
+        <h2>Test 3: Mixed Lists</h2>
+        <div class="input" id="test3-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test3-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test3-raw"></div>
+    </div>
+
+    <script>
+        // Copy the improved parseMarkdown function from the main file
+        function parseMarkdown(markdown) {
+            let html = markdown;
+
+            // First, extract and protect code blocks to prevent interference
+            const codeBlocks = [];
+            let codeBlockIndex = 0;
+
+            // Handle code blocks with language specifiers and without
+            html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+                const placeholder = `__CODE_BLOCK_${codeBlockIndex}__`;
+                // Escape HTML entities in code
+                const escapedCode = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                codeBlocks[codeBlockIndex] = `<pre><code>${escapedCode}</code></pre>`;
+                codeBlockIndex++;
+                return placeholder;
+            });
+
+            // Extract and protect inline code
+            const inlineCodes = [];
+            let inlineCodeIndex = 0;
+            html = html.replace(/`([^`\n]+)`/g, (match, code) => {
+                const placeholder = `__INLINE_CODE_${inlineCodeIndex}__`;
+                // Escape HTML entities in inline code
+                const escapedCode = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+
+                inlineCodes[inlineCodeIndex] = `<code>${escapedCode}</code>`;
+                inlineCodeIndex++;
+                return placeholder;
+            });
+
+            // Convert headers (order matters - longest first)
+            html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Convert bold and italic (be careful with order)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+
+            // Convert links - handle internal anchors differently
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+                if (url.startsWith('#')) {
+                    // Internal anchor link - use data attribute for custom handling
+                    return `<a href="${url}" class="internal-link" data-anchor="${url.substring(1)}">${text}</a>`;
+                } else {
+                    // External link - open in new tab
+                    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+                }
+            });
+
+            // Convert horizontal rules
+            html = html.replace(/^---$/gm, '<hr>');
+
+            // Improved list processing - handle sections more intelligently
+            const sections = html.split(/\n\s*\n/);
+            const processedSections = [];
+
+            for (let section of sections) {
+                section = section.trim();
+                if (!section) continue;
+
+                // Skip if it's already HTML (headers, hr, etc.)
+                if (section.startsWith('<h') || section.startsWith('<hr') || section.includes('__CODE_BLOCK_')) {
+                    processedSections.push(section);
+                    continue;
+                }
+
+                // Check if this section contains any list items
+                const lines = section.split('\n');
+                const hasListItems = lines.some(line => {
+                    const trimmed = line.trim();
+                    return trimmed.match(/^[-*+]\s/) || trimmed.match(/^\d+\.\s/);
+                });
+
+                if (hasListItems) {
+                    // Process as list section with improved algorithm
+                    const listHtml = processListSection(lines);
+                    processedSections.push(listHtml);
+                } else {
+                    // Regular paragraph
+                    processedSections.push(`<p>${section.replace(/\n/g, '<br>')}</p>`);
+                }
+            }
+
+            html = processedSections.join('\n');
+
+            // Restore code blocks
+            for (let i = 0; i < codeBlocks.length; i++) {
+                html = html.replace(`__CODE_BLOCK_${i}__`, codeBlocks[i]);
+            }
+
+            // Restore inline code
+            for (let i = 0; i < inlineCodes.length; i++) {
+                html = html.replace(`__INLINE_CODE_${i}__`, inlineCodes[i]);
+            }
+
+            return html;
+        }
+
+        // Improved list processing function
+        function processListSection(lines) {
+            let result = '';
+            let listStack = []; // Stack to handle nested lists: [{type: 'ul'|'ol', level: number}]
+            let currentItem = '';
+            let inListItem = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                const leadingSpaces = line.length - line.trimStart().length;
+
+                // Check what type of line this is
+                const isUnorderedItem = trimmed.match(/^[-*+]\s/);
+                const isOrderedItem = trimmed.match(/^\d+\.\s/);
+                const isListItem = isUnorderedItem || isOrderedItem;
+
+                if (isListItem) {
+                    // Close current item if we have one
+                    if (inListItem && currentItem.trim()) {
+                        result += `<li>${currentItem.trim()}</li>`;
+                        currentItem = '';
+                    }
+
+                    // Determine the list type for this item
+                    const listType = isUnorderedItem ? 'ul' : 'ol';
+
+                    // Determine nesting level based on indentation
+                    // Top level = 0 spaces, first nested = 3+ spaces, etc.
+                    let targetLevel = 0;
+                    if (leadingSpaces >= 3) {
+                        targetLevel = 1; // First level of nesting
+                    }
+                    if (leadingSpaces >= 6) {
+                        targetLevel = 2; // Second level of nesting
+                    }
+                    // Add more levels as needed
+
+                    // Close lists if we're at a lower nesting level
+                    while (listStack.length > targetLevel) {
+                        const closingList = listStack.pop();
+                        result += `</${closingList.type}>`;
+                    }
+
+                    // Open new lists if we need to go deeper or switch types
+                    if (listStack.length === targetLevel) {
+                        // We're at the right level, check if we need to switch list type
+                        const currentListType = listStack.length > 0 ? listStack[listStack.length - 1].type : null;
+                        if (currentListType !== listType) {
+                            if (currentListType) {
+                                result += `</${currentListType}>`;
+                                listStack.pop();
+                            }
+                            result += `<${listType}>`;
+                            listStack.push({type: listType, level: targetLevel});
+                        }
+                    } else if (listStack.length < targetLevel) {
+                        // We need to open a new nested list
+                        result += `<${listType}>`;
+                        listStack.push({type: listType, level: targetLevel});
+                    }
+
+                    // If no list is open yet, open one
+                    if (listStack.length === 0) {
+                        result += `<${listType}>`;
+                        listStack.push({type: listType, level: 0});
+                    }
+
+                    // Extract the content of the list item
+                    if (isUnorderedItem) {
+                        currentItem = trimmed.substring(2).trim();
+                    } else {
+                        currentItem = trimmed.replace(/^\d+\.\s/, '').trim();
+                    }
+                    inListItem = true;
+
+                } else if (trimmed === '') {
+                    // Empty line - check what comes next
+                    const nextLine = i < lines.length - 1 ? lines[i + 1] : '';
+                    const nextTrimmed = nextLine.trim();
+                    const nextIsListItem = nextTrimmed.match(/^[-*+]\s/) || nextTrimmed.match(/^\d+\.\s/);
+
+                    // If next line is not a list item and we're in a list item, this might end the item
+                    if (!nextIsListItem && inListItem) {
+                        // Look ahead to see if there are more list items later
+                        let hasMoreListItems = false;
+                        for (let j = i + 1; j < lines.length; j++) {
+                            const futureLine = lines[j].trim();
+                            if (futureLine && (futureLine.match(/^[-*+]\s/) || futureLine.match(/^\d+\.\s/))) {
+                                hasMoreListItems = true;
+                                break;
+                            }
+                            if (futureLine && !futureLine.match(/^[-*+]\s/) && !futureLine.match(/^\d+\.\s/)) {
+                                break; // Found non-list content
+                            }
+                        }
+
+                        if (!hasMoreListItems) {
+                            // End the current list item
+                            if (currentItem.trim()) {
+                                result += `<li>${currentItem.trim()}</li>`;
+                                currentItem = '';
+                                inListItem = false;
+                            }
+                        }
+                    }
+
+                } else if (inListItem) {
+                    // This is continuation content for the current list item
+                    if (currentItem) currentItem += ' ';
+                    currentItem += trimmed;
+
+                } else {
+                    // Non-list content - treat as paragraph
+                    if (trimmed) {
+                        result += `<p>${trimmed}</p>`;
+                    }
+                }
+            }
+
+            // Close any remaining list item
+            if (inListItem && currentItem.trim()) {
+                result += `<li>${currentItem.trim()}</li>`;
+            }
+
+            // Close all remaining open lists
+            while (listStack.length > 0) {
+                const closingList = listStack.pop();
+                result += `</${closingList.type}>`;
+            }
+
+            return result;
+        }
+
+        // Test cases
+        const test1 = `1. **Open the Application**: Navigate to the Business Search & Export Tool webpage
+
+2. **Set Your Location**:
+   - Enter your desired ZIP code in the input field (default: 60010 - Barrington, IL)
+   - Press Enter or click away to automatically update coordinates
+   - Verify the coordinates display shows your intended location`;
+
+        const test2 = `3. Set Search Radius:
+   - Adjust the radius slider or input field (1-100 miles)
+   - Default is 30 miles - suitable for most regional business searches
+   - Larger radius = more results but potentially less relevant
+
+4. Select Business Categories:
+   - Individual Selection: Check specific categories like "lawyers.csv" or "medical_practices.csv"
+   - Group Selection: Use group headers (e.g., "office", "amenity") to select all categories in that group
+   - Select All: Use the master checkbox to select/deselect all categories at once`;
+
+        const test3 = `- First bullet point
+- Second bullet point with more text
+- Third bullet point
+
+1. First numbered item
+2. Second numbered item
+3. Third numbered item
+
+- Another bullet
+- Final bullet`;
+
+        // Run tests
+        function runTest(testNum, testInput) {
+            const inputEl = document.getElementById(`test${testNum}-input`);
+            const outputEl = document.getElementById(`test${testNum}-output`);
+            const rawEl = document.getElementById(`test${testNum}-raw`);
+            
+            inputEl.textContent = testInput;
+            const htmlOutput = parseMarkdown(testInput);
+            outputEl.innerHTML = htmlOutput;
+            rawEl.textContent = htmlOutput;
+        }
+
+        runTest(1, test1);
+        runTest(2, test2);
+        runTest(3, test3);
+    </script>
+</body>
+</html>
