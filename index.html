@@ -82,6 +82,9 @@
       border-radius: var(--border-radius);
       padding: var(--spacing-sm);
       margin-bottom: var(--spacing-md);
+      width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .categories-header {
@@ -95,6 +98,8 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: var(--spacing-sm);
+      width: 100%;
+      overflow: hidden;
     }
 
     .key-group {
@@ -103,6 +108,12 @@
       padding: var(--spacing-sm);
       background-color: var(--background-light);
       box-shadow: var(--shadow-light);
+      min-width: 0; /* Prevents grid items from overflowing */
+      overflow: hidden;
+      box-sizing: border-box;
+      width: 100%;
+      /* Add smooth transitions for responsive changes */
+      transition: all 0.3s ease;
     }
 
     .key-header {
@@ -731,11 +742,18 @@
 
       .categories-container {
         padding: var(--spacing-xs);
+        overflow: hidden;
       }
 
       .key-groups-container {
         grid-template-columns: 1fr;
         gap: var(--spacing-xs);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
       }
 
       .key-items.columns-2,
@@ -782,8 +800,18 @@
         justify-content: space-around;
       }
 
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
       }
 
       .key-items.columns-2 {
@@ -812,8 +840,18 @@
 
     /* iPhone 12/13/14 - 390x844 */
     @media screen and (min-width: 390px) and (max-width: 430px) {
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
       }
 
       .key-items.columns-3 {
@@ -837,8 +875,18 @@
 
     /* iPhone 14 Pro Max - 430x932 */
     @media screen and (min-width: 430px) and (max-width: 480px) {
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
       }
 
       .key-items.columns-3 {
@@ -846,14 +894,69 @@
       }
     }
 
-    /* Small tablets and large phones landscape - 480px to 768px */
-    @media screen and (min-width: 480px) and (max-width: 767px) {
+    /* Transition breakpoint - 480px to 600px (single column safer) */
+    @media screen and (min-width: 480px) and (max-width: 600px) {
       body {
         padding: var(--spacing-md);
       }
 
+      .categories-container {
+        overflow: hidden;
+      }
+
+      .key-groups-container {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .actions {
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+
+      .story-dialog {
+        width: 85vw;
+        max-width: 600px;
+      }
+
+      .instructions-dialog {
+        width: 85vw;
+        max-width: 700px;
+      }
+    }
+
+    /* Small tablets and large phones landscape - 600px to 768px */
+    @media screen and (min-width: 600px) and (max-width: 767px) {
+      body {
+        padding: var(--spacing-md);
+      }
+
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        /* Ensure equal width distribution */
+        width: 100%;
       }
 
       .key-items.columns-3 {
@@ -887,9 +990,20 @@
         justify-content: space-between;
       }
 
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: repeat(2, 1fr);
         gap: var(--spacing-md);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
       }
 
       .actions {
@@ -916,8 +1030,20 @@
 
     /* Large tablets landscape - 820x1180 */
     @media screen and (min-width: 820px) and (max-width: 1023px) {
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-md);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
       }
 
       .instructions-dialog {
@@ -939,9 +1065,20 @@
         gap: var(--spacing-lg);
       }
 
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: repeat(3, 1fr);
         gap: var(--spacing-lg);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
       }
 
       .key-items.columns-3 {
@@ -971,8 +1108,20 @@
 
     /* Large desktop screens - 1368px+ */
     @media screen and (min-width: 1368px) {
+      .categories-container {
+        overflow: hidden;
+      }
+
       .key-groups-container {
         grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-lg);
+        width: 100%;
+      }
+
+      .key-group {
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
       }
 
       .instructions-dialog {
@@ -1041,7 +1190,7 @@
       }
     }
   </style>
-  <!-- Add JSZip library in the head section -->
+  <!-- Add JSZip library in the head section --> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
