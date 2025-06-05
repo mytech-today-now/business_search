@@ -1266,6 +1266,14 @@
   <div class="actions">
     <button id="runBtn">Run Export</button>
     <button id="downloadAllBtn" disabled>Download All as ZIP</button>
+    <button id="exportConfigBtn">Export Config</button>
+    <button id="importConfigBtn">Import Config</button>
+    <input
+      type="file"
+      id="importConfigInput"
+      accept=".json"
+      style="display: none;"
+    />
   </div>
 
   <div id="log"></div>
@@ -3064,6 +3072,85 @@ out center tags;`;
       // Event Listener
       // ======================================================
       runBtn.addEventListener("click", runExport);
+
+      // ─── Export / Import Configuration ─────────────────────────────────────────────
+
+      // 1. Export current userCategories + userGroups as a .json
+      const exportConfigBtn = document.getElementById("exportConfigBtn");
+      exportConfigBtn.addEventListener("click", function () {
+        try {
+          const userCategories = loadUserCategories(); // { filename: [ { key, value }, … ], … }
+          const userGroups     = loadUserGroups();     // [ "customGroup1", "customGroup2", … ]
+          const payload = {
+            userCategories,
+            userGroups
+          };
+
+          // Stringify with indentation for readability
+          const jsonString = JSON.stringify(payload, null, 2);
+          const blob = new Blob([jsonString], { type: "application/json" });
+          const url  = URL.createObjectURL(blob);
+
+          // Create a temporary <a> to trigger download
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "business_config.json";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Revoke the object URL after a short delay
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+          alert("Error exporting configuration: " + err.message);
+          console.error(err);
+        }
+      });
+
+      // 2. Import a JSON that has the same structure { userCategories, userGroups }
+      const importConfigBtn   = document.getElementById("importConfigBtn");
+      const importConfigInput = document.getElementById("importConfigInput");
+
+      // When the user clicks "Import Config", forward to the hidden file input
+      importConfigBtn.addEventListener("click", function () {
+        importConfigInput.click();
+      });
+
+      importConfigInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            const imported = JSON.parse(evt.target.result);
+            // Check for required properties
+            if (
+              imported.userCategories !== undefined &&
+              imported.userGroups !== undefined
+            ) {
+              // Overwrite localStorage
+              saveUserCategories(imported.userCategories);
+              saveUserGroups(imported.userGroups);
+
+              // Re-render the category UI
+              initializeCategoryCheckboxes();
+
+              alert("Configuration imported successfully.");
+            } else {
+              throw new Error("Invalid format. Expected { userCategories, userGroups }.");
+            }
+          } catch (err) {
+            alert("Error parsing JSON: " + err.message);
+            console.error(err);
+          }
+        };
+        reader.readAsText(file);
+
+        // Reset the input so the same file can be re-selected if needed
+        e.target.value = "";
+      });
+      // ───────────────────────────────────────────────────────────────────────────────
 
       // Enable download all button after export is complete
       function enableDownloadAllButton() {
