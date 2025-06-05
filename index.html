@@ -56,6 +56,32 @@
       padding-bottom: 4px;
       border-bottom: 1px solid #eee;
       color: #555;
+      position: relative;
+    }
+
+    .key-header .group-delete-btn {
+      display: none;
+      position: absolute;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #d32f2f;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .key-header .group-delete-btn:hover {
+      background: #d32f2f;
+      color: white;
+    }
+
+    .key-header:hover .group-delete-btn {
+      display: block;
     }
     .key-items {
       display: flex;
@@ -294,6 +320,41 @@
     .close-btn:hover {
       color: #000;
     }
+
+    /* ZIP code and coordinates styling */
+    #coordsDisplay {
+      font-family: Consolas, monospace;
+      font-weight: 500;
+      color: #004B8D;
+    }
+
+    .coords-info {
+      color: #666;
+    }
+
+    .status-message {
+      font-size: 0.9rem;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    #radiusMiles {
+      width: 60px;
+    }
+
+    #zipCode {
+      width: 70px;
+    }
+
+    .chatgpt-link {
+      margin-left: 10px;
+    }
+
+    #resetCategoriesLink {
+      margin-left: 10px;
+      color: #d32f2f;
+      font-weight: 500;
+    }
   </style>
   <!-- Add JSZip library in the head section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -336,11 +397,12 @@
   
   <h1>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h1>
   <p>
-    This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data in a 
-    <input type="number" id="radiusMiles" value="30" min="1" max="100" style="width: 60px;"> mi 
-    (<span id="radiusMeters">48280</span>m) radius around ZIP 
-    <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" style="width: 70px;">.
-    Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link" style="margin-left: 10px;">Ask ChatGPT for OSM tags</a>
+    This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data in a
+    <input type="number" id="radiusMiles" value="30" min="1" max="100"> mi
+    (<span id="radiusMeters">48280</span>m) radius around ZIP
+    <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates">.
+    <br><small class="coords-info">Current coordinates: <span id="coordsDisplay">42.1543, -88.1362</span></small>
+    <br>Select categories below and click "Run Export" to generate CSVs. No API key is required. <a href="#" id="askChatGPTLink" target="_blank" rel="noopener noreferrer" class="chatgpt-link">Ask ChatGPT for OSM tags</a><a href="#" id="resetCategoriesLink">Reset Categories</a>
   </p>
 
   <div class="categories-container">
@@ -429,6 +491,7 @@
       const radiusDisplay = document.getElementById("radiusDisplay");
       const zipCodeInput = document.getElementById("zipCode");
       const zipDisplay = document.getElementById("zipDisplay");
+      const coordsDisplay = document.getElementById("coordsDisplay");
       const statusMessage = document.createElement("div");
       statusMessage.className = "status-message";
       zipCodeInput.parentNode.appendChild(statusMessage);
@@ -441,11 +504,11 @@
         radiusDisplay.textContent = RADIUS_MILES;
       });
 
-      // Geocode ZIP code using Census Geocoding API
-      async function geocodeZipCode(zipCode) {
+      // Geocode ZIP code using Census Geocoding API - make it globally accessible
+      window.geocodeZipCode = async function geocodeZipCode(zipCode) {
         statusMessage.textContent = `Looking up coordinates for ${zipCode}...`;
         statusMessage.style.color = "#666";
-        
+
         try {
           // Try using Census Geocoding API with no-cors mode
           try {
@@ -455,11 +518,11 @@
                 'Accept': 'application/json'
               }
             });
-            
+
             // Note: With no-cors, we can't actually read the response content
             // So we'll immediately fall back to our local database
             throw new Error("Using no-cors mode, falling back to local database");
-            
+
           } catch (corsError) {
             console.warn("CORS issue with Census API, using fallback method");
             // Continue to fallback method
@@ -526,7 +589,108 @@
             "60093": { lat: 42.1083, lng: -87.7340 }, // Winnetka, IL
             "60096": { lat: 42.1967, lng: -87.9472 }, // Wauconda, IL
             "60099": { lat: 42.4464, lng: -87.8031 }, // Zion, IL
-            
+
+            // Chicago City Proper
+            "60601": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60602": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60603": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60604": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60605": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60606": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60607": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60608": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Bridgeport/Chinatown)
+            "60609": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Bridgeport)
+            "60610": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near North Side)
+            "60611": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Magnificent Mile/Gold Coast)
+            "60612": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near West Side)
+            "60613": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Lakeview)
+            "60614": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Lincoln Park)
+            "60615": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Kenwood/Hyde Park)
+            "60616": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near South Side)
+            "60617": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (South Shore)
+            "60618": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (North Center/Irving Park)
+            "60619": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Chatham)
+            "60620": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Greater Grand Crossing)
+            "60621": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Fuller Park)
+            "60622": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Wicker Park/Bucktown)
+            "60623": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Little Village)
+            "60624": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (North Lawndale)
+            "60625": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Albany Park)
+            "60626": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Rogers Park)
+            "60628": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Roseland)
+            "60629": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Gage Park)
+            "60630": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Jefferson Park)
+            "60631": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (O'Hare)
+            "60632": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (McKinley Park)
+            "60633": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Hegewisch)
+            "60634": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Belmont Cragin)
+            "60636": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (New City)
+            "60637": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Woodlawn)
+            "60638": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Ashburn)
+            "60639": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Hermosa)
+            "60640": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Uptown)
+            "60641": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Portage Park)
+            "60642": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near West Side)
+            "60643": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Morgan Park)
+            "60644": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Austin)
+            "60645": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (West Ridge)
+            "60646": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Norwood Park)
+            "60647": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Logan Square)
+            "60649": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (South Shore)
+            "60651": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (West Garfield Park)
+            "60652": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (West Elsdon)
+            "60653": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Oakland)
+            "60654": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (River North)
+            "60655": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Mount Greenwood)
+            "60656": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (O'Hare)
+            "60657": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Lakeview)
+            "60659": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (West Ridge)
+            "60660": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Edgewater)
+            "60661": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (West Loop)
+            "60664": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near North Side)
+            "60666": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (O'Hare Airport)
+            "60668": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near West Side)
+            "60669": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near West Side)
+            "60670": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60673": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60674": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60675": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60677": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60678": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60680": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60681": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60682": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60684": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60685": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60686": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60687": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60688": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60689": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60690": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60691": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60693": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60694": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60695": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60696": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60697": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+            "60699": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (The Loop)
+
+            // Additional Chicago South Side and Neighborhoods
+            "60827": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Calumet Heights)
+            "60628": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Roseland/Pullman)
+            "60617": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (South Shore/Rainbow Beach)
+            "60649": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (South Shore)
+            "60619": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Chatham/Avalon Park)
+            "60620": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Greater Grand Crossing)
+            "60637": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Woodlawn/University of Chicago)
+            "60615": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Kenwood/Hyde Park)
+            "60653": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Oakland/Douglas)
+            "60621": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Fuller Park/Armour Square)
+            "60609": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Bridgeport/McKinley Park)
+            "60608": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Bridgeport/Chinatown)
+            "60616": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (Near South Side/South Loop)
+            "60605": { lat: 41.8781, lng: -87.6298 }, // Chicago, IL (South Loop/Museum Campus)
+
             // West Suburbs
             "60101": { lat: 41.9372, lng: -88.0942 }, // Addison, IL
             "60102": { lat: 42.1656, lng: -88.2831 }, // Algonquin, IL
@@ -768,7 +932,281 @@
             "89109": { lat: 36.1147, lng: -115.1653 }, // Las Vegas, NV (The Strip)
             "89110": { lat: 36.1750, lng: -115.0531 }, // Las Vegas, NV
             "89113": { lat: 36.0869, lng: -115.2495 }, // Las Vegas, NV
-            "89117": { lat: 36.1425, lng: -115.2775 } // Las Vegas, NV
+            "89117": { lat: 36.1425, lng: -115.2775 }, // Las Vegas, NV
+
+            // San Diego County - Poway
+            "92064": { lat: 32.9628, lng: -117.0359 }, // Poway, CA
+
+            // Orange County - San Juan Capistrano
+            "92675": { lat: 33.5017, lng: -117.6628 }, // San Juan Capistrano, CA
+
+            // Silicon Valley Area
+            "94301": { lat: 37.4419, lng: -122.1430 }, // Palo Alto, CA
+            "94302": { lat: 37.4419, lng: -122.1430 }, // Palo Alto, CA
+            "94303": { lat: 37.4419, lng: -122.1430 }, // Palo Alto, CA
+            "94304": { lat: 37.4419, lng: -122.1430 }, // Palo Alto, CA
+            "94305": { lat: 37.4419, lng: -122.1430 }, // Stanford, CA
+            "94306": { lat: 37.4419, lng: -122.1430 }, // Palo Alto, CA
+            "95014": { lat: 37.3230, lng: -122.0322 }, // Cupertino, CA
+            "95051": { lat: 37.3688, lng: -121.9678 }, // Santa Clara, CA
+            "95054": { lat: 37.3688, lng: -121.9678 }, // Santa Clara, CA
+            "95070": { lat: 37.3541, lng: -122.0522 }, // Saratoga, CA
+            "95110": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95111": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95112": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95113": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95116": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95117": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95118": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95119": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95120": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95121": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95122": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95123": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95124": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95125": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95126": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95127": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95128": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95129": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95130": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95131": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95132": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95133": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95134": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95135": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95136": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95138": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "95139": { lat: 37.3382, lng: -121.8863 }, // San Jose, CA
+            "94085": { lat: 37.4224, lng: -122.0856 }, // Sunnyvale, CA
+            "94086": { lat: 37.4224, lng: -122.0856 }, // Sunnyvale, CA
+            "94087": { lat: 37.4224, lng: -122.0856 }, // Sunnyvale, CA
+            "94089": { lat: 37.4224, lng: -122.0856 }, // Sunnyvale, CA
+            "94041": { lat: 37.3861, lng: -122.0839 }, // Mountain View, CA
+            "94043": { lat: 37.3861, lng: -122.0839 }, // Mountain View, CA
+            "94024": { lat: 37.4852, lng: -122.1483 }, // Los Altos, CA
+            "94022": { lat: 37.4852, lng: -122.1483 }, // Los Altos, CA
+            "94040": { lat: 37.3861, lng: -122.0839 }, // Mountain View, CA
+            "94035": { lat: 37.4419, lng: -122.1430 }, // Milpitas, CA
+            "95035": { lat: 37.4323, lng: -121.9018 }, // Milpitas, CA
+
+            // Ventura County
+            "93001": { lat: 34.2746, lng: -119.2290 }, // Ventura, CA
+            "93003": { lat: 34.2746, lng: -119.2290 }, // Ventura, CA
+            "93004": { lat: 34.2746, lng: -119.2290 }, // Ventura, CA
+            "93006": { lat: 34.2746, lng: -119.2290 }, // Ventura, CA
+            "93009": { lat: 34.2746, lng: -119.2290 }, // Ventura, CA
+
+            // Seattle Metropolitan Area
+            // Seattle
+            "98101": { lat: 47.6062, lng: -122.3321 }, // Seattle, WA (Downtown)
+            "98102": { lat: 47.6205, lng: -122.3212 }, // Seattle, WA (Capitol Hill)
+            "98103": { lat: 47.6740, lng: -122.3419 }, // Seattle, WA (Fremont/Wallingford)
+            "98104": { lat: 47.6021, lng: -122.3321 }, // Seattle, WA (Pioneer Square)
+            "98105": { lat: 47.6606, lng: -122.3031 }, // Seattle, WA (University District)
+            "98106": { lat: 47.5287, lng: -122.3487 }, // Seattle, WA (White Center)
+            "98107": { lat: 47.6684, lng: -122.3762 }, // Seattle, WA (Ballard)
+            "98108": { lat: 47.5287, lng: -122.3212 }, // Seattle, WA (South Park)
+            "98109": { lat: 47.6205, lng: -122.3487 }, // Seattle, WA (South Lake Union)
+            "98112": { lat: 47.6205, lng: -122.3031 }, // Seattle, WA (Capitol Hill East)
+            "98115": { lat: 47.6897, lng: -122.3031 }, // Seattle, WA (Northgate)
+            "98116": { lat: 47.5649, lng: -122.3762 }, // Seattle, WA (West Seattle)
+            "98117": { lat: 47.6897, lng: -122.3762 }, // Seattle, WA (Ballard North)
+            "98118": { lat: 47.5287, lng: -122.2762 }, // Seattle, WA (Rainier Valley)
+            "98119": { lat: 47.6354, lng: -122.3762 }, // Seattle, WA (Interbay)
+            "98121": { lat: 47.6149, lng: -122.3487 }, // Seattle, WA (Belltown)
+            "98122": { lat: 47.6062, lng: -122.3031 }, // Seattle, WA (Central District)
+            "98125": { lat: 47.7231, lng: -122.3031 }, // Seattle, WA (Northgate North)
+            "98126": { lat: 47.5649, lng: -122.3487 }, // Seattle, WA (West Seattle South)
+            "98133": { lat: 47.7231, lng: -122.3487 }, // Seattle, WA (North Seattle)
+            "98134": { lat: 47.5649, lng: -122.3212 }, // Seattle, WA (SODO)
+            "98136": { lat: 47.5287, lng: -122.3762 }, // Seattle, WA (Burien/Highline)
+            "98144": { lat: 47.5649, lng: -122.2762 }, // Seattle, WA (Mount Baker)
+            "98146": { lat: 47.5287, lng: -122.3487 }, // Seattle, WA (Burien)
+            "98148": { lat: 47.4287, lng: -122.3212 }, // Seattle, WA (SeaTac)
+            "98154": { lat: 47.5649, lng: -122.3321 }, // Seattle, WA (South Seattle)
+            "98155": { lat: 47.7231, lng: -122.2762 }, // Seattle, WA (Shoreline)
+            "98158": { lat: 47.4649, lng: -122.2762 }, // Seattle, WA (Tukwila)
+            "98164": { lat: 47.5649, lng: -122.3321 }, // Seattle, WA (Industrial District)
+            "98166": { lat: 47.4649, lng: -122.3487 }, // Seattle, WA (Normandy Park)
+            "98168": { lat: 47.4649, lng: -122.3212 }, // Seattle, WA (Tukwila South)
+            "98177": { lat: 47.7564, lng: -122.3762 }, // Seattle, WA (Shoreline West)
+            "98178": { lat: 47.4649, lng: -122.2762 }, // Seattle, WA (Tukwila East)
+            "98188": { lat: 47.4287, lng: -122.2762 }, // Seattle, WA (SeaTac East)
+            "98199": { lat: 47.6354, lng: -122.4031 }, // Seattle, WA (Magnolia)
+
+            // Redmond
+            "98052": { lat: 47.6740, lng: -122.1215 }, // Redmond, WA
+            "98053": { lat: 47.6740, lng: -122.1215 }, // Redmond, WA (Microsoft Campus area)
+
+            // Bellevue
+            "98004": { lat: 47.6101, lng: -122.2015 }, // Bellevue, WA (Downtown)
+            "98005": { lat: 47.6101, lng: -122.1515 }, // Bellevue, WA (East)
+            "98006": { lat: 47.5649, lng: -122.1515 }, // Bellevue, WA (South)
+            "98007": { lat: 47.6101, lng: -122.1215 }, // Bellevue, WA (Crossroads)
+            "98008": { lat: 47.6354, lng: -122.1515 }, // Bellevue, WA (North)
+
+            // Medina
+            "98039": { lat: 47.6240, lng: -122.2304 }, // Medina, WA
+
+            // Florida - Fort Myers Area (Lee County)
+            "33901": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL (Downtown)
+            "33902": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33903": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33904": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33905": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33906": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33907": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33908": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33909": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33912": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33913": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33914": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33915": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33916": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33917": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33918": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33919": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33920": { lat: 26.6406, lng: -81.8723 }, // Fort Myers, FL
+            "33921": { lat: 26.5628, lng: -81.9495 }, // Estero, FL
+            "33922": { lat: 26.4614, lng: -81.8081 }, // Fort Myers Beach, FL
+            "33924": { lat: 26.4614, lng: -81.8081 }, // Fort Myers Beach, FL
+            "33928": { lat: 26.5312, lng: -82.0251 }, // Bonita Springs, FL
+            "33931": { lat: 26.3587, lng: -81.8723 }, // Lehigh Acres, FL
+            "33936": { lat: 26.3587, lng: -81.8723 }, // Lehigh Acres, FL
+            "33957": { lat: 26.7153, lng: -81.7787 }, // North Fort Myers, FL
+            "33966": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33967": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33971": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33972": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33973": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33974": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33976": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33990": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33991": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+            "33993": { lat: 26.4801, lng: -81.7787 }, // Cape Coral, FL
+
+            // Florida - Sarasota Area (Sarasota County)
+            "34201": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34202": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34203": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34205": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34207": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34208": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34209": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34210": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34211": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34212": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34215": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34216": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34217": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34219": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34221": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34222": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34223": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34224": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34228": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34229": { lat: 27.4989, lng: -82.5748 }, // Bradenton, FL
+            "34230": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34231": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34232": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34233": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34234": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34235": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34236": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34237": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34238": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34239": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34240": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34241": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34242": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34243": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34251": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34260": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34264": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34265": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34266": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34267": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34268": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34269": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34270": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34274": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34275": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34276": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34277": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34278": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34280": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34281": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34282": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34284": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34285": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34286": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34287": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34288": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34289": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34290": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34291": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34292": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34293": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+            "34295": { lat: 27.3364, lng: -82.5307 }, // Sarasota, FL
+
+            // Florida - Clearwater/Tampa Bay Area (Pinellas County)
+            "33755": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33756": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33759": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33760": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33761": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33762": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33763": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33764": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33765": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33767": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33770": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33771": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33772": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33773": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33774": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33775": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33776": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33777": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33778": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33779": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33780": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33781": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33782": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33784": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33785": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33786": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+            "33787": { lat: 27.9659, lng: -82.8001 }, // Clearwater, FL
+
+            // San Francisco, CA
+            "94102": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Downtown/Civic Center)
+            "94103": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (SOMA)
+            "94104": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Financial District)
+            "94105": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (SOMA/Rincon Hill)
+            "94107": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Potrero Hill)
+            "94108": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Chinatown/Nob Hill)
+            "94109": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Polk Gulch/Russian Hill)
+            "94110": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Mission District)
+            "94111": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Financial District)
+            "94112": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Outer Mission)
+            "94114": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Castro/Noe Valley)
+            "94115": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Pacific Heights)
+            "94116": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Sunset District)
+            "94117": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Haight-Ashbury)
+            "94118": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Richmond District)
+            "94121": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Richmond District)
+            "94122": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Sunset District)
+            "94123": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Marina District)
+            "94124": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Bayview)
+            "94127": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (West Portal)
+            "94129": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Presidio)
+            "94130": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Treasure Island)
+            "94131": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Glen Park)
+            "94132": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Lake Merced)
+            "94133": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (North Beach)
+            "94134": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Visitacion Valley)
+            "94158": { lat: 37.7749, lng: -122.4194 } // San Francisco, CA (Mission Bay)
           };
           
           // Check if the ZIP code exists in the hardcoded mapping
@@ -776,6 +1214,9 @@
             const { lat, lng } = zipCoordinates[zipCode];
             window.LAT = lat;
             window.LNG = lng;
+            window.ZIP_CODE = zipCode;
+            zipDisplay.textContent = zipCode;
+            coordsDisplay.textContent = `${lat}, ${lng}`;
             statusMessage.textContent = `Coordinates found: ${window.LAT}, ${window.LNG}`;
             statusMessage.style.color = "#333";
             return { lat, lng };
@@ -784,10 +1225,31 @@
           }
         } catch (error) {
           console.error("Error geocoding ZIP code:", error);
-          statusMessage.textContent = `Error looking up coordinates: ${error.message}`;
+          statusMessage.textContent = `Error looking up coordinates: ${error.message}. Using default ZIP ${window.ZIP_CODE}.`;
           statusMessage.style.color = "#d32f2f";
+          // Reset input to current valid ZIP
+          zipCodeInput.value = window.ZIP_CODE;
+          return null;
         }
       }
+
+      // Add event listener to ZIP code input for real-time geocoding
+      zipCodeInput.addEventListener("blur", async function() {
+        const newZip = this.value.trim();
+        if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
+          await window.geocodeZipCode(newZip);
+        }
+      });
+
+      // Also handle Enter key on ZIP input
+      zipCodeInput.addEventListener("keydown", async function(e) {
+        if (e.key === "Enter") {
+          const newZip = this.value.trim();
+          if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
+            await window.geocodeZipCode(newZip);
+          }
+        }
+      });
     })();
   </script>
 
@@ -1051,6 +1513,7 @@
               <input type="checkbox" class="select-key" data-key="${key}">
               ${key.charAt(0).toUpperCase() + key.slice(1)} (${categories.length})
             </label>
+            <span class="group-delete-btn" data-key="${key}" title="Delete Group">&times;</span>
             <span class="add-new" data-key="${key}" title="Add New Category">+</span>
           `;
           keyGroup.appendChild(keyHeader);
@@ -1370,13 +1833,17 @@ out center tags;`;
         const currentZip = zipCodeInput.value.trim();
         if (currentZip !== window.ZIP_CODE) {
           if (/^\d{5}$/.test(currentZip)) {
-            window.ZIP_CODE = currentZip;
-            zipDisplay.textContent = window.ZIP_CODE;
-            log(`Updating coordinates for ZIP code: ${window.ZIP_CODE}`);
-            // Note: geocodeZipCode is in the first IIFE, so we can't call it directly
-            // The coordinates should be updated by the first IIFE's event listeners
+            log(`Updating coordinates for ZIP code: ${currentZip}...`);
+            const result = await window.geocodeZipCode(currentZip);
+            if (!result) {
+              log(`[!] Failed to geocode ZIP ${currentZip}. Using previous ZIP: ${window.ZIP_CODE}`);
+              zipCodeInput.value = window.ZIP_CODE; // Reset input to valid ZIP
+            } else {
+              log(`✓ Successfully updated coordinates for ZIP ${window.ZIP_CODE}: ${window.LAT}, ${window.LNG}`);
+            }
           } else {
             log(`[!] Invalid ZIP code format: ${currentZip}. Using previous ZIP: ${window.ZIP_CODE}`);
+            zipCodeInput.value = window.ZIP_CODE; // Reset input to valid ZIP
           }
         }
         
@@ -1584,6 +2051,27 @@ out center tags;`;
       initializeCategoryCheckboxes();
       setupDynamicAddRemove();
       setupDynamicAddRemoveGroups();
+
+      // ======================================================
+      // Reset Categories Functionality
+      // ======================================================
+      const resetCategoriesLink = document.getElementById("resetCategoriesLink");
+      resetCategoriesLink.addEventListener("click", function(e) {
+        e.preventDefault();
+        // 1. Clear stored user categories and groups:
+        localStorage.removeItem("userCategories");
+        localStorage.removeItem("userGroups");
+
+        // 2. Remove any header-level new-entry if present:
+        const headerContainer = document.getElementById("headerNewEntryContainer");
+        headerContainer.innerHTML = "";
+
+        // 3. Remove any category-level new-entry rows:
+        document.querySelectorAll(".category-item.new-entry").forEach(item => item.remove());
+
+        // 4. Rebuild category checkboxes from scratch:
+        initializeCategoryCheckboxes();
+      });
 
       // ======================================================
       // Event Listener
