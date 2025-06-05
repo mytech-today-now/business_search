@@ -2498,89 +2498,146 @@ out center tags;`;
       const dialog = document.getElementById("instructionsDialog");
       const contentDiv = document.getElementById("instructionsContent");
 
-      let markdownLoaded = false;
-
-      // Simple markdown to HTML converter
+      // Enhanced markdown to HTML converter
       function parseMarkdown(markdown) {
         let html = markdown;
 
-        // Convert headers
+        // First, extract and protect code blocks to prevent interference
+        const codeBlocks = [];
+        let codeBlockIndex = 0;
+
+        // Handle code blocks with language specifiers and without
+        html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+          const placeholder = `__CODE_BLOCK_${codeBlockIndex}__`;
+          // Escape HTML entities in code
+          const escapedCode = code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+          codeBlocks[codeBlockIndex] = `<pre><code>${escapedCode}</code></pre>`;
+          codeBlockIndex++;
+          return placeholder;
+        });
+
+        // Extract and protect inline code
+        const inlineCodes = [];
+        let inlineCodeIndex = 0;
+        html = html.replace(/`([^`\n]+)`/g, (match, code) => {
+          const placeholder = `__INLINE_CODE_${inlineCodeIndex}__`;
+          // Escape HTML entities in inline code
+          const escapedCode = code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+          inlineCodes[inlineCodeIndex] = `<code>${escapedCode}</code>`;
+          inlineCodeIndex++;
+          return placeholder;
+        });
+
+        // Convert headers (order matters - longest first)
+        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
         html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
 
-        // Convert bold and italic
+        // Convert bold and italic (be careful with order)
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
 
         // Convert links
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-        // Convert inline code
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        // Convert code blocks
-        html = html.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>');
-
         // Convert horizontal rules
         html = html.replace(/^---$/gm, '<hr>');
 
-        // Convert line breaks to paragraphs
-        const paragraphs = html.split('\n\n').filter(p => p.trim());
-        html = paragraphs.map(p => {
-          p = p.trim();
-          if (p.startsWith('<h') || p.startsWith('<hr') || p.startsWith('<pre') || p.startsWith('<ul') || p.startsWith('<ol')) {
-            return p;
+        // Split into sections and process
+        const sections = html.split(/\n\s*\n/);
+        const processedSections = [];
+
+        for (let section of sections) {
+          section = section.trim();
+          if (!section) continue;
+
+          // Skip if it's already HTML (headers, hr, etc.)
+          if (section.startsWith('<h') || section.startsWith('<hr') || section.includes('__CODE_BLOCK_')) {
+            processedSections.push(section);
+            continue;
           }
 
           // Handle lists
-          if (p.includes('\n- ') || p.includes('\n* ')) {
-            const lines = p.split('\n');
+          const lines = section.split('\n');
+          if (lines.some(line => line.trim().match(/^[-*]\s/) || line.trim().match(/^\d+\.\s/))) {
             let listHtml = '';
-            let inList = false;
+            let currentList = null;
+            let listItems = [];
 
             for (let line of lines) {
-              line = line.trim();
-              if (line.startsWith('- ') || line.startsWith('* ')) {
-                if (!inList) {
+              const trimmed = line.trim();
+
+              if (trimmed.match(/^[-*]\s/)) {
+                if (currentList !== 'ul') {
+                  if (currentList) listHtml += `</${currentList}>`;
                   listHtml += '<ul>';
-                  inList = true;
+                  currentList = 'ul';
                 }
-                listHtml += '<li>' + line.substring(2) + '</li>';
-              } else if (line.match(/^\d+\. /)) {
-                if (!inList) {
+                listItems.push(`<li>${trimmed.substring(2)}</li>`);
+              } else if (trimmed.match(/^\d+\.\s/)) {
+                if (currentList !== 'ol') {
+                  if (currentList) listHtml += `</${currentList}>`;
                   listHtml += '<ol>';
-                  inList = true;
+                  currentList = 'ol';
                 }
-                listHtml += '<li>' + line.replace(/^\d+\. /, '') + '</li>';
-              } else {
-                if (inList) {
-                  listHtml += inList === 'ul' ? '</ul>' : '</ol>';
-                  inList = false;
+                listItems.push(`<li>${trimmed.replace(/^\d+\.\s/, '')}</li>`);
+              } else if (trimmed) {
+                // Non-list line
+                if (currentList) {
+                  listHtml += listItems.join('') + `</${currentList}>`;
+                  listItems = [];
+                  currentList = null;
                 }
-                if (line) listHtml += '<p>' + line + '</p>';
+                listHtml += `<p>${trimmed}</p>`;
               }
             }
-            if (inList) {
-              listHtml += '</ul>';
-            }
-            return listHtml;
-          }
 
-          return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
-        }).join('');
+            if (currentList) {
+              listHtml += listItems.join('') + `</${currentList}>`;
+            }
+
+            processedSections.push(listHtml);
+          } else {
+            // Regular paragraph
+            processedSections.push(`<p>${section.replace(/\n/g, '<br>')}</p>`);
+          }
+        }
+
+        html = processedSections.join('\n');
+
+        // Restore code blocks
+        for (let i = 0; i < codeBlocks.length; i++) {
+          html = html.replace(`__CODE_BLOCK_${i}__`, codeBlocks[i]);
+        }
+
+        // Restore inline code
+        for (let i = 0; i < inlineCodes.length; i++) {
+          html = html.replace(`__INLINE_CODE_${i}__`, inlineCodes[i]);
+        }
 
         return html;
       }
 
       async function loadMarkdownContent() {
-        if (markdownLoaded) return;
-
         try {
-          contentDiv.innerHTML = '<div class="loading-message">Loading documentation...</div>';
+          contentDiv.innerHTML = '<div class="loading-message">Loading latest documentation from GitHub...</div>';
 
-          const response = await fetch('https://raw.githubusercontent.com/mytech-today-now/business_search/b519d2e5aa84c0d8f49c4787b34c119ff713dc5d/readme.md?token=GHSAT0AAAAAADESJQQ3R2OG56XTF6NTJGRQ2CBPXQQ');
+          // Add cache-busting parameter to ensure we get the latest version
+          const timestamp = new Date().getTime();
+          const response = await fetch(`https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}`);
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -2590,7 +2647,6 @@ out center tags;`;
           const htmlContent = parseMarkdown(markdownText);
 
           contentDiv.innerHTML = htmlContent;
-          markdownLoaded = true;
 
         } catch (error) {
           console.error('Error loading markdown:', error);
@@ -2598,7 +2654,8 @@ out center tags;`;
             <div class="error-message">
               <h3>Error Loading Documentation</h3>
               <p>Unable to load the documentation. Please try again later or visit the GitHub repository directly:</p>
-              <p><a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">View on GitHub</a></p>
+              <p><a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">View Documentation on GitHub</a></p>
+              <p><em>Note: The documentation is automatically loaded from the latest version in the repository.</em></p>
             </div>
           `;
         }
