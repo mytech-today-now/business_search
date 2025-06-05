@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head> 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -1022,11 +1022,36 @@
       margin: 0 0 1rem 0;
     }
     .markdown-content ul, .markdown-content ol {
-      margin: 0 0 1rem 0;
-      padding-left: 2rem;
+      margin: 0 0 var(--spacing-md) 0;
+      padding-left: var(--spacing-xl);
     }
+
     .markdown-content li {
-      margin: 0.25rem 0;
+      margin-bottom: var(--spacing-sm);
+      line-height: 1.6;
+    }
+
+    /* Ensure nested lists have proper spacing */
+    .markdown-content li ul, .markdown-content li ol {
+      margin-top: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    /* Style list markers */
+    .markdown-content ul {
+      list-style-type: disc;
+    }
+
+    .markdown-content ol {
+      list-style-type: decimal;
+    }
+
+    .markdown-content ul ul {
+      list-style-type: circle;
+    }
+
+    .markdown-content ul ul ul {
+      list-style-type: square;
     }
     .markdown-content code {
       background: #f6f8fa;
@@ -5092,6 +5117,7 @@ out center tags;`;
           let result = marked(markdown, { renderer: renderer });
           console.log('✅ Markdown parsed successfully with custom renderer');
 
+<<<<<<< HEAD
           // Check if the result contains 'undefined' and fallback to default if needed
           if (result.includes('undefined')) {
             console.warn('⚠️ Found undefined in result with custom renderer, trying default renderer');
@@ -5105,6 +5131,129 @@ out center tags;`;
           // Fallback to simple text if parsing fails
           return `<p>Error parsing markdown content. Raw content:</p><pre>${markdown}</pre>`;
         }
+=======
+        // Process line by line instead of section by section
+        const lines = html.split('\n');
+        const processedLines = [];
+        let currentList = null;
+        let inParagraph = false;
+        let paragraphContent = '';
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const trimmed = line.trim();
+
+          // Skip empty lines
+          if (!trimmed) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Close any open list
+            if (currentList) {
+              processedLines.push(`</${currentList}>`);
+              currentList = null;
+            }
+            continue;
+          }
+
+          // Skip if it's already HTML (headers, hr, etc.)
+          if (trimmed.startsWith('<h') || trimmed.startsWith('<hr') || trimmed.includes('__CODE_BLOCK_')) {
+            // Close any open elements first
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            if (currentList) {
+              processedLines.push(`</${currentList}>`);
+              currentList = null;
+            }
+            processedLines.push(trimmed);
+            continue;
+          }
+
+          // Handle unordered list items
+          if (trimmed.match(/^[-*]\s/)) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Start or continue unordered list
+            if (currentList !== 'ul') {
+              if (currentList) processedLines.push(`</${currentList}>`);
+              processedLines.push('<ul>');
+              currentList = 'ul';
+            }
+            const itemContent = trimmed.substring(2).trim();
+            processedLines.push(`<li>${itemContent}</li>`);
+            continue;
+          }
+
+          // Handle ordered list items
+          if (trimmed.match(/^\d+\.\s/)) {
+            // Close any open paragraph
+            if (inParagraph && paragraphContent.trim()) {
+              processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+              paragraphContent = '';
+              inParagraph = false;
+            }
+            // Start or continue ordered list
+            if (currentList !== 'ol') {
+              if (currentList) processedLines.push(`</${currentList}>`);
+              processedLines.push('<ol>');
+              currentList = 'ol';
+            }
+            const itemContent = trimmed.replace(/^\d+\.\s/, '').trim();
+            processedLines.push(`<li>${itemContent}</li>`);
+            continue;
+          }
+
+          // Regular text line
+          // Close any open list
+          if (currentList) {
+            processedLines.push(`</${currentList}>`);
+            currentList = null;
+          }
+
+          // Add to paragraph content
+          if (inParagraph) {
+            paragraphContent += ' ' + trimmed;
+          } else {
+            paragraphContent = trimmed;
+            inParagraph = true;
+          }
+        }
+
+        // Close any remaining open elements
+        if (inParagraph && paragraphContent.trim()) {
+          processedLines.push(`<p>${paragraphContent.trim()}</p>`);
+        }
+        if (currentList) {
+          processedLines.push(`</${currentList}>`);
+        }
+
+        html = processedLines.join('\n');
+
+        // Restore code blocks
+        for (let i = 0; i < codeBlocks.length; i++) {
+          html = html.replace(`__CODE_BLOCK_${i}__`, codeBlocks[i]);
+        }
+
+        // Restore inline code
+        for (let i = 0; i < inlineCodes.length; i++) {
+          html = html.replace(`__INLINE_CODE_${i}__`, inlineCodes[i]);
+        }
+
+        // Debug: log the final HTML for troubleshooting
+        console.log('Parsed markdown HTML:', html.substring(0, 500) + '...');
+
+        return html;
+>>>>>>> main
       }
 
 
@@ -5167,47 +5316,139 @@ out center tags;`;
         });
       }
 
+      // Enhanced function to fetch the latest README.md from GitHub
       async function loadMarkdownContent() {
         try {
           contentDiv.innerHTML = '<div class="loading-message">Loading latest documentation from GitHub...</div>';
 
+<<<<<<< HEAD
           // Load the actual README.md content
 
           // Add cache-busting parameter to ensure we get the latest version
+=======
+          // Multiple cache-busting strategies
+>>>>>>> main
           const timestamp = new Date().getTime();
-
-          // Try multiple possible README filenames and branches
-          const possibleUrls = [
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/README.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/Readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/README.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/readme.md?t=${timestamp}`,
-            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/Readme.md?t=${timestamp}`
-          ];
+          const randomId = Math.random().toString(36).substring(2, 15);
 
           let response;
           let lastError;
           let attemptedUrls = [];
+          let markdownText = '';
 
-          // Try each URL until one works
-          for (const url of possibleUrls) {
-            try {
-              console.log(`Attempting to fetch: ${url}`);
-              response = await fetch(url);
-              attemptedUrls.push(`${url} - Status: ${response.status}`);
-              if (response.ok) {
-                console.log(`Success! Loaded from: ${url}`);
-                break; // Success, exit the loop
+          // Strategy 1: Try GitHub Contents API first (most reliable for latest content)
+          console.log('Attempting GitHub Contents API...');
+          try {
+            const apiUrl = `https://api.github.com/repos/mytech-today-now/business_search/contents/README.md?ref=main&_=${timestamp}&r=${randomId}`;
+            console.log(`Fetching from GitHub API: ${apiUrl}`);
+
+            const apiResponse = await fetch(apiUrl, {
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
               }
-              lastError = new Error(`HTTP error! status: ${response.status} for ${url}`);
-            } catch (error) {
-              lastError = error;
-              attemptedUrls.push(`${url} - Error: ${error.message}`);
-              console.warn(`Failed to fetch from ${url}:`, error.message);
+            });
+
+            attemptedUrls.push(`GitHub API - Status: ${apiResponse.status}`);
+
+            if (apiResponse.ok) {
+              const apiData = await apiResponse.json();
+              if (apiData.content && apiData.encoding === 'base64') {
+                // Decode base64 content
+                markdownText = atob(apiData.content);
+                console.log(`Success! Loaded ${markdownText.length} characters from GitHub API`);
+
+                // Validate content completeness
+                if (markdownText.length > 1000 && markdownText.includes('# Business Search & Export Tool')) {
+                  const htmlContent = parseMarkdown(markdownText);
+                  contentDiv.innerHTML = `
+                    <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 10px; margin-bottom: 20px; border-radius: 4px; color: #155724;">
+                      <strong>✓ Latest Version:</strong> Documentation loaded from GitHub API (${new Date().toLocaleString()})
+                    </div>
+                    ${htmlContent}
+                  `;
+                  setupInternalLinkHandlers();
+                  return;
+                }
+              }
+            }
+          } catch (apiError) {
+            console.warn('GitHub API failed:', apiError.message);
+            attemptedUrls.push(`GitHub API - Error: ${apiError.message}`);
+            lastError = apiError;
+          }
+
+          // Strategy 2: Try raw GitHub URLs with enhanced cache busting
+          console.log('Falling back to raw GitHub URLs...');
+          const possibleUrls = [
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/README.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/Readme.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/README.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/readme.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/Readme.md?t=${timestamp}&r=${randomId}&cb=${Date.now()}`
+          ];
+
+          // Try each URL with retry logic
+          for (const url of possibleUrls) {
+            for (let attempt = 1; attempt <= 2; attempt++) {
+              try {
+                console.log(`Attempting (${attempt}/2): ${url}`);
+
+                response = await fetch(url, {
+                  headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                  }
+                });
+
+                attemptedUrls.push(`${url} (attempt ${attempt}) - Status: ${response.status}`);
+
+                if (response.ok) {
+                  markdownText = await response.text();
+
+                  // Validate content quality and completeness
+                  if (markdownText.length > 1000 &&
+                      markdownText.includes('# Business Search & Export Tool') &&
+                      markdownText.includes('## Technology Stack') &&
+                      markdownText.includes('myTech.Today')) {
+
+                    console.log(`Success! Loaded ${markdownText.length} characters from: ${url}`);
+                    const htmlContent = parseMarkdown(markdownText);
+
+                    contentDiv.innerHTML = `
+                      <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; margin-bottom: 20px; border-radius: 4px; color: #0c5460;">
+                        <strong>✓ GitHub Raw:</strong> Documentation loaded successfully (${new Date().toLocaleString()})
+                      </div>
+                      ${htmlContent}
+                    `;
+                    setupInternalLinkHandlers();
+                    return;
+                  } else {
+                    console.warn(`Content validation failed for ${url} - length: ${markdownText.length}`);
+                    attemptedUrls.push(`${url} - Content validation failed (length: ${markdownText.length})`);
+                  }
+                }
+
+                lastError = new Error(`HTTP error! status: ${response.status} for ${url}`);
+
+              } catch (error) {
+                lastError = error;
+                attemptedUrls.push(`${url} (attempt ${attempt}) - Error: ${error.message}`);
+                console.warn(`Failed attempt ${attempt} for ${url}:`, error.message);
+
+                // Wait before retry
+                if (attempt === 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
             }
           }
 
+<<<<<<< HEAD
           if (!response || !response.ok) {
             // Try to fall back to local README.md file
             console.log('GitHub fetch failed, trying local README.md...');
@@ -5303,6 +5544,8 @@ out center tags;`;
         }
       }
 
+=======
+>>>>>>> main
       // Fallback function to load basic embedded documentation
       window.loadEmbeddedDocs = function() {
         const basicDocs = `
