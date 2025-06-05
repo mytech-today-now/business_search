@@ -3,30 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Parser Test</title>
+    <title>Parser Output Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
-        .test-section {
+        .test-case {
             border: 1px solid #ccc;
             margin: 20px 0;
             padding: 20px;
         }
-        .test-input {
+        .input {
             background: #f5f5f5;
             padding: 10px;
             margin-bottom: 10px;
             white-space: pre-wrap;
             font-family: monospace;
+            border: 1px solid #ddd;
         }
-        .test-output {
+        .output {
             border: 1px solid #ddd;
             padding: 10px;
             background: white;
+        }
+        .raw-html {
+            background: #fff8dc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
         }
         ul, ol {
             margin: 0 0 1rem 0;
@@ -38,24 +48,33 @@
     </style>
 </head>
 <body>
-    <h1>Markdown Parser Test</h1>
+    <h1>Markdown Parser Output Test</h1>
     
-    <div class="test-section">
-        <h2>Test 1: Simple Numbered List</h2>
-        <div class="test-input" id="test1-input"></div>
-        <div class="test-output" id="test1-output"></div>
+    <div class="test-case">
+        <h2>Test 1: Simple Numbered List with Nested Items</h2>
+        <div class="input" id="test1-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test1-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test1-raw"></div>
     </div>
 
-    <div class="test-section">
+    <div class="test-case">
         <h2>Test 2: Multi-line List Items</h2>
-        <div class="test-input" id="test2-input"></div>
-        <div class="test-output" id="test2-output"></div>
+        <div class="input" id="test2-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test2-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test2-raw"></div>
     </div>
 
-    <div class="test-section">
+    <div class="test-case">
         <h2>Test 3: Mixed Lists</h2>
-        <div class="test-input" id="test3-input"></div>
-        <div class="test-output" id="test3-output"></div>
+        <div class="input" id="test3-input"></div>
+        <h3>Rendered Output:</h3>
+        <div class="output" id="test3-output"></div>
+        <h3>Raw HTML:</h3>
+        <div class="raw-html" id="test3-raw"></div>
     </div>
 
     <script>
@@ -335,14 +354,20 @@
 - Final bullet`;
 
         // Run tests
-        document.getElementById('test1-input').textContent = test1;
-        document.getElementById('test1-output').innerHTML = parseMarkdown(test1);
+        function runTest(testNum, testInput) {
+            const inputEl = document.getElementById(`test${testNum}-input`);
+            const outputEl = document.getElementById(`test${testNum}-output`);
+            const rawEl = document.getElementById(`test${testNum}-raw`);
+            
+            inputEl.textContent = testInput;
+            const htmlOutput = parseMarkdown(testInput);
+            outputEl.innerHTML = htmlOutput;
+            rawEl.textContent = htmlOutput;
+        }
 
-        document.getElementById('test2-input').textContent = test2;
-        document.getElementById('test2-output').innerHTML = parseMarkdown(test2);
-
-        document.getElementById('test3-input').textContent = test3;
-        document.getElementById('test3-output').innerHTML = parseMarkdown(test3);
+        runTest(1, test1);
+        runTest(2, test2);
+        runTest(3, test3);
     </script>
 </body>
 </html>
