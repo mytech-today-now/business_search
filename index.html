@@ -5,57 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Export Businesses Using Overpass (No Google API)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
+    /* CSS Custom Properties for consistent theming */
+    :root {
+      --primary-color: #004B8D;
+      --secondary-color: #10a37f;
+      --danger-color: #d32f2f;
+      --success-color: #1976d2;
+      --border-color: #ccc;
+      --light-border: #e5e5e5;
+      --background-light: #f9f9f9;
+      --background-lighter: #f5f5f5;
+      --text-color: #333;
+      --text-muted: #666;
+      --text-light: #555;
+      --shadow-light: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-medium: 0 4px 12px rgba(0,0,0,0.3);
+      --border-radius: 4px;
+      --border-radius-large: 8px;
+      --spacing-xs: 0.25rem;
+      --spacing-sm: 0.5rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
     }
-    /* Navigation styles */
+
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: var(--spacing-sm);
+      color: var(--text-color);
+      line-height: 1.5;
+      background-color: #fff;
+    }
+
+    /* Mobile-first responsive container */
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0 var(--spacing-sm);
+    }
+
+    /* Navigation styles - Mobile first */
     .main-nav {
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 1rem;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+      padding: var(--spacing-sm);
+      background: var(--background-light);
+      border-radius: var(--border-radius);
     }
+
     .main-nav a {
-      color: #004B8D;
+      color: var(--primary-color);
       text-decoration: none;
       font-weight: 500;
-      padding: 0.5rem;
+      padding: var(--spacing-sm);
+      text-align: center;
+      border-radius: var(--border-radius);
+      transition: background-color 0.2s ease;
     }
+
     .main-nav a:hover {
       text-decoration: underline;
+      background-color: rgba(0, 75, 141, 0.1);
     }
+
+    /* Categories container - Mobile first */
     .categories-container {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 10px;
-      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
     }
+
     .categories-header {
       font-weight: bold;
-      margin-bottom: 10px;
-      padding-bottom: 10px;
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-sm);
       border-bottom: 1px solid #eee;
     }
+
     .key-groups-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-sm);
     }
+
     .key-group {
-      border: 1px solid #e5e5e5;
-      border-radius: 4px;
-      padding: 8px;
-      background-color: #f9f9f9;
-      flex: 1 0 300px;
-      max-width: 400px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--light-border);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-sm);
+      background-color: var(--background-light);
+      box-shadow: var(--shadow-light);
     }
+
     .key-header {
       font-weight: bold;
-      margin-bottom: 8px;
-      padding-bottom: 4px;
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-xs);
       border-bottom: 1px solid #eee;
-      color: #555;
+      color: var(--text-light);
       position: relative;
     }
 
@@ -65,141 +120,229 @@
       right: 30px;
       top: 50%;
       transform: translateY(-50%);
-      color: #d32f2f;
+      color: var(--danger-color);
       font-weight: bold;
       cursor: pointer;
       font-size: 1.1rem;
       line-height: 1;
       padding: 2px 4px;
-      border-radius: 3px;
+      border-radius: var(--border-radius);
       background: rgba(255, 255, 255, 0.9);
+      transition: all 0.2s ease;
     }
 
     .key-header .group-delete-btn:hover {
-      background: #d32f2f;
+      background: var(--danger-color);
       color: white;
     }
 
     .key-header:hover .group-delete-btn {
       display: block;
     }
+
     .key-items {
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-xs);
       max-height: 300px;
       overflow-y: auto;
     }
+
     .key-items.columns-1 {
-      column-count: 1;
+      grid-template-columns: 1fr;
     }
+
     .key-items.columns-2 {
-      column-count: 2;
+      grid-template-columns: repeat(2, 1fr);
     }
+
     .key-items.columns-3 {
-      column-count: 3;
+      grid-template-columns: repeat(3, 1fr);
     }
+
     .key-items.scrollable {
       max-height: 300px;
       overflow-y: auto;
     }
 
+    /* Actions and buttons */
     .actions {
-      margin: 20px 0;
+      margin: var(--spacing-md) 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
     }
+
     button {
-      padding: 0.5rem 1rem;
+      padding: var(--spacing-sm) var(--spacing-md);
       font-size: 1rem;
       cursor: pointer;
-      margin-right: 0.5rem;
+      border: 1px solid var(--primary-color);
+      background: var(--primary-color);
+      color: white;
+      border-radius: var(--border-radius);
+      transition: all 0.2s ease;
+      font-family: inherit;
     }
+
+    button:hover:not(:disabled) {
+      background: #003a6b;
+      border-color: #003a6b;
+    }
+
+    button:disabled {
+      background: var(--text-muted);
+      border-color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* Log area */
     #log {
-      margin-top: 1rem;
+      margin-top: var(--spacing-md);
       white-space: pre-wrap;
-      background: #f5f5f5;
-      padding: 1rem;
-      border-radius: 4px;
-      height: 300px;
+      background: var(--background-lighter);
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius);
+      height: 200px;
       overflow-y: auto;
-      font-family: Consolas, monospace;
-      font-size: 0.9rem;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.85rem;
+      border: 1px solid var(--light-border);
     }
+
     .download-link {
-      margin: 0.5rem 0;
+      margin: var(--spacing-sm) 0;
       display: block;
+      color: var(--primary-color);
+      text-decoration: none;
+      padding: var(--spacing-xs);
+      border-radius: var(--border-radius);
     }
-    
+
+    .download-link:hover {
+      text-decoration: underline;
+      background: rgba(0, 75, 141, 0.1);
+    }
     /* Key Header and Inline Add Styles */
     .key-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
     }
+
     .key-header .add-new {
       cursor: pointer;
       font-size: 1.2rem;
-      color: #10a37f;
-      margin-left: 8px;
+      color: var(--secondary-color);
+      margin-left: var(--spacing-sm);
+      transition: color 0.2s ease;
     }
+
     .key-header .add-new:hover {
       color: #0e8c65;
     }
+
+    /* Category items */
     .category-item {
       position: relative;
-      padding: 3px;
+      padding: var(--spacing-xs);
       font-size: 0.9rem;
       break-inside: avoid;
       page-break-inside: avoid;
+      border-radius: var(--border-radius);
+      transition: background-color 0.2s ease;
     }
+
+    .category-item:hover {
+      background-color: rgba(0, 75, 141, 0.05);
+    }
+
     .category-item label {
       display: flex;
       align-items: flex-start;
+      cursor: pointer;
+      width: 100%;
     }
+
     .category-item input[type="checkbox"] {
-      margin-right: 5px;
+      margin-right: var(--spacing-xs);
       margin-top: 3px;
+      flex-shrink: 0;
     }
+
     .category-item .remove-btn {
       display: none;
       position: absolute;
       right: 4px;
       top: 4px;
-      color: #d32f2f;
+      color: var(--danger-color);
       font-weight: bold;
       cursor: pointer;
       font-size: 1rem;
       line-height: 1;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      transition: all 0.2s ease;
     }
+
     .category-item:hover .remove-btn {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
+    .category-item .remove-btn:hover {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    /* New entry styles */
     .category-item.new-entry {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 5px;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs);
+      background-color: rgba(16, 163, 127, 0.1);
     }
+
     .category-item.new-entry input[type="text"] {
       flex: 1;
-      padding: 4px 6px;
+      padding: var(--spacing-xs) var(--spacing-sm);
       font-size: 0.9rem;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-family: inherit;
     }
+
     .category-item.new-entry .cancel-new {
-      color: #d32f2f;
+      color: var(--danger-color);
       cursor: pointer;
       font-size: 1.1rem;
       line-height: 1;
+      transition: color 0.2s ease;
     }
+
+    .category-item.new-entry .cancel-new:hover {
+      color: #b71c1c;
+    }
+
     .category-item.new-entry .ask-chatgpt-link {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-decoration: none;
-      color: #004B8D;
-      margin-left: 6px;
+      color: var(--primary-color);
+      white-space: nowrap;
+      transition: color 0.2s ease;
     }
+
     .category-item.new-entry .ask-chatgpt-link:hover {
       text-decoration: underline;
+      color: #003a6b;
     }
 
     /* Header Add Group Styles */
@@ -207,45 +350,66 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
     }
+
     .categories-header .add-group {
       cursor: pointer;
       font-size: 1.2rem;
-      color: #10a37f;
-      margin-left: 8px;
+      color: var(--secondary-color);
+      margin-left: var(--spacing-sm);
+      transition: color 0.2s ease;
     }
+
     .categories-header .add-group:hover {
       color: #0e8c65;
     }
+
     .header-new-entry {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+      flex-wrap: wrap;
     }
+
     .header-new-entry input[type="text"] {
       flex: 1;
-      padding: 4px 6px;
+      min-width: 200px;
+      padding: var(--spacing-xs) var(--spacing-sm);
       font-size: 0.9rem;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-family: inherit;
     }
+
     .header-new-entry .cancel-new {
-      color: #d32f2f;
+      color: var(--danger-color);
       cursor: pointer;
       font-size: 1.1rem;
       line-height: 1;
-    }
-    .header-new-entry .ask-chatgpt-link {
-      font-size: 0.9rem;
-      text-decoration: none;
-      color: #004B8D;
-    }
-    .header-new-entry .ask-chatgpt-link:hover {
-      text-decoration: underline;
+      transition: color 0.2s ease;
     }
 
-    /* STORY OF PAGE POPUP STYLES */
+    .header-new-entry .cancel-new:hover {
+      color: #b71c1c;
+    }
+
+    .header-new-entry .ask-chatgpt-link {
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: var(--primary-color);
+      white-space: nowrap;
+      transition: color 0.2s ease;
+    }
+
+    .header-new-entry .ask-chatgpt-link:hover {
+      text-decoration: underline;
+      color: #003a6b;
+    }
+
+    /* POPUP OVERLAY STYLES */
     .hidden-overlay {
       display: none;
       position: fixed;
@@ -257,56 +421,76 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      padding: var(--spacing-md);
     }
+
     .visible-overlay {
       display: flex;
     }
+
+    /* Story Dialog */
     .story-dialog {
       background: #fff;
-      border-radius: 8px;
+      border-radius: var(--border-radius-large);
       max-width: 600px;
-      width: 90%;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      width: 100%;
+      max-height: 90vh;
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-medium);
       position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
+
     .story-header h2 {
-      margin: 0 0 1rem 0;
-      color: #004B8D; /* myTech.Today branded color */
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--primary-color);
       font-size: 1.5rem;
+      padding-right: 40px;
     }
+
     .story-content {
-      max-height: 70vh;
+      flex: 1;
       overflow-y: auto;
-      font-family: Arial, sans-serif;
+      font-family: inherit;
       font-size: 0.95rem;
-      line-height: 1.4;
+      line-height: 1.6;
     }
+
     .story-content ul {
-      padding-left: 1.5rem;
+      padding-left: var(--spacing-lg);
+      margin: 0;
     }
+
     .story-content li {
-      margin-bottom: 0.75rem;
+      margin-bottom: var(--spacing-sm);
     }
+
     .signature-block {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
+      margin-top: var(--spacing-lg);
+      padding-top: var(--spacing-md);
       border-top: 1px solid #eee;
       font-weight: 500;
     }
+
     .signature-block a {
       display: block;
-      margin-top: 0.25rem;
-      color: #004B8D;
+      margin-top: var(--spacing-xs);
+      color: var(--primary-color);
       text-decoration: none;
+      transition: color 0.2s ease;
     }
+
     .signature-block a:hover {
       text-decoration: underline;
+      color: #003a6b;
     }
+
     .close-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
       background: transparent;
       border: none;
       font-size: 1.5rem;
@@ -314,60 +498,72 @@
       height: 30px;
       line-height: 30px;
       text-align: center;
-      color: #555;
+      color: var(--text-muted);
       cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.2s ease;
     }
+
     .close-btn:hover {
-      color: #000;
+      color: var(--text-color);
+      background: rgba(0, 0, 0, 0.1);
     }
 
     /* INSTRUCTIONS POPUP STYLES */
     .instructions-dialog {
       background: #fff;
-      border-radius: 8px;
-      max-width: 90vw;
-      width: 1200px;
-      height: 80vh;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border-radius: var(--border-radius-large);
+      max-width: 95vw;
+      width: 100%;
+      max-width: 1200px;
+      height: 85vh;
+      max-height: 800px;
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-medium);
       position: relative;
       display: flex;
       flex-direction: column;
     }
+
     .instructions-header h2 {
-      margin: 0 0 1rem 0;
-      color: #004B8D; /* myTech.Today branded color */
+      margin: 0 0 var(--spacing-md) 0;
+      color: var(--primary-color);
       font-size: 1.5rem;
+      padding-right: 40px;
     }
+
     .instructions-content {
       flex: 1;
       overflow: auto;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: var(--border-radius);
       background: #fff;
     }
+
     .markdown-content {
-      padding: 2rem;
+      padding: var(--spacing-md);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
       line-height: 1.6;
       color: #24292f;
       max-width: none;
     }
+
     .markdown-content h1 {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 600;
-      margin: 0 0 1rem 0;
-      padding-bottom: 0.3rem;
+      margin: 0 0 var(--spacing-md) 0;
+      padding-bottom: var(--spacing-xs);
       border-bottom: 1px solid #d1d9e0;
-      color: #004B8D;
+      color: var(--primary-color);
     }
+
     .markdown-content h2 {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      margin: 2rem 0 1rem 0;
-      padding-bottom: 0.3rem;
+      margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+      padding-bottom: var(--spacing-xs);
       border-bottom: 1px solid #d1d9e0;
-      color: #004B8D;
+      color: var(--primary-color);
     }
     .markdown-content h3 {
       font-size: 1.25rem;
@@ -421,6 +617,23 @@
     }
     .markdown-content a:hover {
       text-decoration: underline;
+    }
+
+    /* Internal anchor links styling */
+    .markdown-content a.internal-link {
+      color: var(--primary-color);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .markdown-content a.internal-link:hover {
+      color: #003a6b;
+      text-decoration: underline;
+    }
+
+    /* Smooth scrolling for instructions content */
+    .instructions-content {
+      scroll-behavior: smooth;
     }
     .markdown-content strong {
       font-weight: 600;
@@ -489,6 +702,344 @@
       color: #1976d2;
       font-weight: 500;
     }
+
+    /* ========================================
+       RESPONSIVE MEDIA QUERIES
+       ======================================== */
+
+    /* Very small screens - 157px width (smartwatch/mini displays) */
+    @media screen and (max-width: 157px) {
+      body {
+        padding: var(--spacing-xs);
+        font-size: 0.75rem;
+      }
+
+      .main-nav {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+      }
+
+      .main-nav a {
+        font-size: 0.8rem;
+        padding: var(--spacing-xs);
+      }
+
+      h1 {
+        font-size: 1rem;
+        line-height: 1.2;
+      }
+
+      .categories-container {
+        padding: var(--spacing-xs);
+      }
+
+      .key-groups-container {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
+      }
+
+      .key-items.columns-2,
+      .key-items.columns-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        gap: var(--spacing-xs);
+      }
+
+      button {
+        padding: var(--spacing-xs);
+        font-size: 0.8rem;
+      }
+
+      #log {
+        height: 150px;
+        font-size: 0.7rem;
+        padding: var(--spacing-xs);
+      }
+
+      .story-dialog,
+      .instructions-dialog {
+        width: 95vw;
+        height: 95vh;
+        padding: var(--spacing-sm);
+      }
+
+      .markdown-content {
+        padding: var(--spacing-sm);
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Small mobile screens - 360x740 (Galaxy S8/S9) */
+    @media screen and (min-width: 360px) and (max-width: 390px) {
+      body {
+        padding: var(--spacing-sm);
+      }
+
+      .main-nav {
+        flex-direction: row;
+        justify-content: space-around;
+      }
+
+      .key-groups-container {
+        grid-template-columns: 1fr;
+      }
+
+      .key-items.columns-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .story-dialog {
+        width: 95vw;
+        max-height: 85vh;
+      }
+
+      .instructions-dialog {
+        width: 95vw;
+        height: 85vh;
+      }
+    }
+
+    /* iPhone 12/13/14 - 390x844 */
+    @media screen and (min-width: 390px) and (max-width: 430px) {
+      .key-groups-container {
+        grid-template-columns: 1fr;
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .actions {
+        flex-direction: row;
+        gap: var(--spacing-sm);
+      }
+
+      .story-dialog {
+        width: 90vw;
+      }
+
+      .instructions-dialog {
+        width: 90vw;
+        height: 80vh;
+      }
+    }
+
+    /* iPhone 14 Pro Max - 430x932 */
+    @media screen and (min-width: 430px) and (max-width: 480px) {
+      .key-groups-container {
+        grid-template-columns: 1fr;
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Small tablets and large phones landscape - 480px to 768px */
+    @media screen and (min-width: 480px) and (max-width: 767px) {
+      body {
+        padding: var(--spacing-md);
+      }
+
+      .key-groups-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .actions {
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+
+      .story-dialog {
+        width: 85vw;
+        max-width: 600px;
+      }
+
+      .instructions-dialog {
+        width: 85vw;
+        max-width: 700px;
+      }
+    }
+
+    /* Tablets - 768x1024 (iPad) */
+    @media screen and (min-width: 768px) and (max-width: 1023px) {
+      body {
+        padding: var(--spacing-lg);
+      }
+
+      .main-nav {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
+      .key-groups-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+      }
+
+      .actions {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--spacing-md);
+      }
+
+      .story-dialog {
+        width: 80vw;
+        max-width: 700px;
+      }
+
+      .instructions-dialog {
+        width: 85vw;
+        max-width: 900px;
+        height: 85vh;
+      }
+
+      #log {
+        height: 250px;
+      }
+    }
+
+    /* Large tablets landscape - 820x1180 */
+    @media screen and (min-width: 820px) and (max-width: 1023px) {
+      .key-groups-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .instructions-dialog {
+        width: 90vw;
+        max-width: 1000px;
+      }
+    }
+
+    /* Desktop and large screens - 1024x1366+ */
+    @media screen and (min-width: 1024px) {
+      body {
+        padding: var(--spacing-xl);
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .main-nav {
+        justify-content: flex-start;
+        gap: var(--spacing-lg);
+      }
+
+      .key-groups-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+      }
+
+      .key-items.columns-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .actions {
+        flex-direction: row;
+        gap: var(--spacing-lg);
+      }
+
+      .story-dialog {
+        width: 70vw;
+        max-width: 800px;
+      }
+
+      .instructions-dialog {
+        width: 80vw;
+        max-width: 1200px;
+        height: 80vh;
+      }
+
+      #log {
+        height: 300px;
+      }
+    }
+
+    /* Large desktop screens - 1368px+ */
+    @media screen and (min-width: 1368px) {
+      .key-groups-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .instructions-dialog {
+        width: 75vw;
+      }
+    }
+
+    /* Landscape orientation adjustments */
+    @media screen and (orientation: landscape) and (max-height: 500px) {
+      .story-dialog,
+      .instructions-dialog {
+        height: 90vh;
+        max-height: none;
+      }
+
+      .story-content,
+      .instructions-content {
+        max-height: 60vh;
+      }
+
+      #log {
+        height: 150px;
+      }
+    }
+
+    /* High DPI displays */
+    @media screen and (-webkit-min-device-pixel-ratio: 2),
+           screen and (min-resolution: 192dpi) {
+      .markdown-content {
+        font-size: 0.9rem;
+      }
+
+      button {
+        padding: calc(var(--spacing-sm) + 1px) calc(var(--spacing-md) + 2px);
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      .main-nav,
+      .actions,
+      .hidden-overlay,
+      .visible-overlay {
+        display: none !important;
+      }
+
+      body {
+        padding: 0;
+        font-size: 12pt;
+        line-height: 1.4;
+      }
+
+      .categories-container {
+        break-inside: avoid;
+      }
+
+      .key-group {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+      }
+
+      #log {
+        height: auto;
+        max-height: 200px;
+        font-size: 10pt;
+      }
+    }
   </style>
   <!-- Add JSZip library in the head section -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -511,8 +1062,8 @@
           <li>The code was also pushed to GitHub: <a href="https://github.com/mytech-today-now/business_search" target="_blank">mytech-today-now/business_search</a>.</li>
           <li>A separate ChatGPT prompt produced 35 business types that benefit from MSP services in Chicagoland; the reply was reformatted as a comma-separated list and re-fed into ChatGPT/Augment.</li>
           <li>On June 1, 2025, the code was refactored 29 times using Augment (50 total prompts to generate and refine code). Additional prompts refined and improved the final version.</li>
-          <li>Finally, the entire codebase was fed back into ChatGPT for further prompt generation, then re-applied in Augment. This iterative AI-driven workflow has been an extremely effective way to "vibe code."</li>
-          <li>By comparison, 15 years ago I wrote this same program in C# over four weeks. The AI version took 1.5 days with almost zero manual effort.</li>
+          <li>Finally, the entire codebase was fed back into ChatGPT for further prompt generation, then re-applied in Augment. This iterative AI-driven workflow has been an extremely effective way to "vibe code.  Currently, June 5, 2025, Augment does a better job of 'vibe coding' than ChatGPT with Codex"</li>
+          <li>By comparison, 15 years ago I wrote a similar program in C# over the course of four weeks. This AI version took 1.5 days with almost zero manual effort, and is much more professional, comphrensive, interactive, and responsive.</li>
         </ul>
         <div class="signature-block">
           Kyle Rode
@@ -2550,8 +3101,16 @@ out center tags;`;
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
 
-        // Convert links
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        // Convert links - handle internal anchors differently
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+          if (url.startsWith('#')) {
+            // Internal anchor link - use data attribute for custom handling
+            return `<a href="${url}" class="internal-link" data-anchor="${url.substring(1)}">${text}</a>`;
+          } else {
+            // External link - open in new tab
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+          }
+        });
 
         // Convert horizontal rules
         html = html.replace(/^---$/gm, '<hr>');
@@ -2631,16 +3190,125 @@ out center tags;`;
         return html;
       }
 
+      function setupInternalLinkHandlers() {
+        // Find all internal anchor links within the instructions content
+        const internalLinks = contentDiv.querySelectorAll('a.internal-link');
+
+        internalLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const anchor = this.getAttribute('data-anchor');
+            if (!anchor) return;
+
+            // Find the target element by ID or by heading text
+            let targetElement = contentDiv.querySelector(`#${anchor}`);
+
+            if (!targetElement) {
+              // If no element with ID found, try to find by heading text
+              // Convert anchor to text format (replace hyphens with spaces, etc.)
+              const searchText = anchor
+                .replace(/-+/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase())
+                .trim();
+
+              // Look for headings that match
+              const headings = contentDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+              for (const heading of headings) {
+                const headingText = heading.textContent.trim();
+                if (headingText.toLowerCase().includes(searchText.toLowerCase()) ||
+                    searchText.toLowerCase().includes(headingText.toLowerCase())) {
+                  targetElement = heading;
+                  break;
+                }
+              }
+            }
+
+            if (targetElement) {
+              // Scroll the instructions content container to the target element
+              const instructionsContent = document.querySelector('.instructions-content');
+              const targetOffset = targetElement.offsetTop - instructionsContent.offsetTop;
+
+              instructionsContent.scrollTo({
+                top: targetOffset - 20, // Add some padding
+                behavior: 'smooth'
+              });
+
+              // Optional: highlight the target element briefly
+              targetElement.style.backgroundColor = 'rgba(0, 75, 141, 0.1)';
+              setTimeout(() => {
+                targetElement.style.backgroundColor = '';
+              }, 2000);
+            } else {
+              console.warn(`Target element not found for anchor: ${anchor}`);
+            }
+          });
+        });
+      }
+
       async function loadMarkdownContent() {
         try {
           contentDiv.innerHTML = '<div class="loading-message">Loading latest documentation from GitHub...</div>';
 
           // Add cache-busting parameter to ensure we get the latest version
           const timestamp = new Date().getTime();
-          const response = await fetch(`https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}`);
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          // Try multiple possible README filenames and branches
+          const possibleUrls = [
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/README.md?t=${timestamp}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/readme.md?t=${timestamp}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/main/Readme.md?t=${timestamp}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/README.md?t=${timestamp}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/readme.md?t=${timestamp}`,
+            `https://raw.githubusercontent.com/mytech-today-now/business_search/master/Readme.md?t=${timestamp}`
+          ];
+
+          let response;
+          let lastError;
+          let attemptedUrls = [];
+
+          // Try each URL until one works
+          for (const url of possibleUrls) {
+            try {
+              console.log(`Attempting to fetch: ${url}`);
+              response = await fetch(url);
+              attemptedUrls.push(`${url} - Status: ${response.status}`);
+              if (response.ok) {
+                console.log(`Success! Loaded from: ${url}`);
+                break; // Success, exit the loop
+              }
+              lastError = new Error(`HTTP error! status: ${response.status} for ${url}`);
+            } catch (error) {
+              lastError = error;
+              attemptedUrls.push(`${url} - Error: ${error.message}`);
+              console.warn(`Failed to fetch from ${url}:`, error.message);
+            }
+          }
+
+          if (!response || !response.ok) {
+            // Try to fall back to local README.md file
+            console.log('GitHub fetch failed, trying local README.md...');
+            try {
+              const localResponse = await fetch(`/README.md?t=${timestamp}`);
+              if (localResponse.ok) {
+                console.log('Success! Loaded local README.md');
+                const markdownText = await localResponse.text();
+                const htmlContent = parseMarkdown(markdownText);
+                contentDiv.innerHTML = `
+                  <div class="local-fallback-notice" style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                    <strong>Note:</strong> Displaying local documentation (GitHub version unavailable)
+                  </div>
+                  ${htmlContent}
+                `;
+                // Add event listeners for internal anchor links
+                setupInternalLinkHandlers();
+                return;
+              }
+            } catch (localError) {
+              console.warn('Local fallback also failed:', localError.message);
+              attemptedUrls.push(`Local README.md - Error: ${localError.message}`);
+            }
+            throw lastError || new Error('All README URLs failed');
           }
 
           const markdownText = await response.text();
@@ -2648,18 +3316,128 @@ out center tags;`;
 
           contentDiv.innerHTML = htmlContent;
 
+          // Add event listeners for internal anchor links
+          setupInternalLinkHandlers();
+
         } catch (error) {
           console.error('Error loading markdown:', error);
+
+          // Ensure attemptedUrls is defined
+          const urlList = (typeof attemptedUrls !== 'undefined' && attemptedUrls.length > 0)
+            ? attemptedUrls.map(url => `<li><code>${url}</code></li>`).join('')
+            : '<li><code>No URLs attempted (initialization error)</code></li>';
+
           contentDiv.innerHTML = `
             <div class="error-message">
               <h3>Error Loading Documentation</h3>
-              <p>Unable to load the documentation. Please try again later or visit the GitHub repository directly:</p>
+              <p>Unable to load the documentation from GitHub. This could be due to:</p>
+              <ul>
+                <li>Network connectivity issues</li>
+                <li>GitHub API rate limiting</li>
+                <li>Repository access restrictions</li>
+                <li>CORS policy restrictions</li>
+                <li>Local file access restrictions</li>
+              </ul>
+              <p>Please try again later or visit the GitHub repository directly:</p>
               <p><a href="https://github.com/mytech-today-now/business_search" target="_blank" rel="noopener noreferrer">View Documentation on GitHub</a></p>
+              <p><a href="https://github.com/mytech-today-now/business_search/blob/main/README.md" target="_blank" rel="noopener noreferrer">Direct link to README.md</a></p>
               <p><em>Note: The documentation is automatically loaded from the latest version in the repository.</em></p>
+              <div style="margin-top: 20px;">
+                <button onclick="loadEmbeddedDocs()" style="background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                  Load Basic Documentation
+                </button>
+              </div>
+              <details>
+                <summary>Technical Details</summary>
+                <p><strong>Error:</strong> ${error.message}</p>
+                <p><strong>Attempted URLs:</strong></p>
+                <ul>
+                  ${urlList}
+                </ul>
+              </details>
             </div>
           `;
         }
       }
+
+      // Fallback function to load basic embedded documentation
+      window.loadEmbeddedDocs = function() {
+        const basicDocs = `
+          <div class="local-fallback-notice" style="background: #e3f2fd; border: 1px solid #2196f3; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+            <strong>Basic Documentation:</strong> Embedded fallback version
+          </div>
+
+          <h1>Business Search & Export Tool</h1>
+
+          <p>A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a>.</p>
+
+          <h2>Quick Start Guide</h2>
+
+          <h3>1. Set Your Location</h3>
+          <ul>
+            <li>Enter your ZIP code in the input field (default: 60010 - Barrington, IL)</li>
+            <li>Press Enter or click away to automatically update coordinates</li>
+            <li>Verify the coordinates display shows your intended location</li>
+          </ul>
+
+          <h3>2. Configure Search Radius</h3>
+          <ul>
+            <li>Adjust the radius slider or input field (1-100 miles)</li>
+            <li>Default is 30 miles - suitable for most regional business searches</li>
+          </ul>
+
+          <h3>3. Select Business Categories</h3>
+          <ul>
+            <li><strong>Individual Selection:</strong> Check specific categories like "lawyers.csv" or "medical_practices.csv"</li>
+            <li><strong>Group Selection:</strong> Use group headers (e.g., "office", "amenity") to select all categories in that group</li>
+            <li><strong>Select All:</strong> Use the master checkbox to select/deselect all categories at once</li>
+          </ul>
+
+          <h3>4. Add Custom Categories (Optional)</h3>
+          <ul>
+            <li>Click the "+" button within any group section</li>
+            <li>Enter the business description (e.g., "veterinary clinic", "tax preparation")</li>
+            <li>Click "Ask ChatGPT for OSM tags" for help finding the correct OpenStreetMap tags</li>
+          </ul>
+
+          <h3>5. Run Export</h3>
+          <ul>
+            <li>Click "Run Export" button</li>
+            <li>Monitor the log area for real-time progress updates</li>
+            <li>Wait for all selected categories to complete processing</li>
+          </ul>
+
+          <h3>6. Download Your Data</h3>
+          <ul>
+            <li><strong>Individual Files:</strong> Click individual download links for specific business categories</li>
+            <li><strong>Complete Dataset:</strong> Click "Download All as ZIP" for a bundled file containing all CSVs</li>
+          </ul>
+
+          <h2>How It Works</h2>
+          <p>This application uses OpenStreetMap's Overpass API to fetch business data within a specified geographic radius. The data is then parsed and exported as CSV files containing business information such as name, address, phone, email, and website.</p>
+
+          <h2>Key Features</h2>
+          <ul>
+            <li><strong>No API Keys Required:</strong> Uses free OpenStreetMap data</li>
+            <li><strong>Geographic Targeting:</strong> Search within specific mile radius of any US ZIP code</li>
+            <li><strong>Multiple Export Formats:</strong> Individual CSV files or bundled ZIP download</li>
+            <li><strong>Custom Categories:</strong> Add your own business types beyond the preset list</li>
+            <li><strong>Real-time Progress:</strong> Monitor export progress with detailed logging</li>
+          </ul>
+
+          <h2>Support</h2>
+          <p>For questions or support, contact:</p>
+          <ul>
+            <li><strong>myTech.Today</strong></li>
+            <li>Email: <a href="mailto:sales@mytech.today">sales@mytech.today</a></li>
+            <li>Phone: <a href="tel:18477674914">(847) 767-4914</a></li>
+            <li>Website: <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">https://mytech.today</a></li>
+          </ul>
+        `;
+
+        contentDiv.innerHTML = basicDocs;
+        setupInternalLinkHandlers();
+      };
 
       function openInstructions(e) {
         if (e) e.preventDefault();
