@@ -226,35 +226,64 @@
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr auto 1fr;
       gap: var(--spacing-md);
       align-items: center;
-    }
-
-    .header-brand {
-      text-align: center;
-    }
-
-    .brand-logo {
-      font-size: 2rem;
-      font-weight: 700;
-      margin: 0;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .brand-tagline {
-      font-size: 0.9rem;
-      margin: var(--spacing-xs) 0 0 0;
-      opacity: 0.9;
-      font-weight: 300;
+      min-height: 80px;
     }
 
     .header-nav {
       display: flex;
       flex-direction: column;
       gap: var(--spacing-sm);
+      align-items: flex-start;
+      justify-self: start;
+    }
+
+    .header-brand {
+      text-align: center;
+      justify-self: center;
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .brand-icon {
+      font-size: 2.5rem;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .brand-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-logo a {
+      color: white;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .brand-logo a:hover {
+      opacity: 0.8;
+    }
+
+    .brand-tagline {
+      font-size: 0.85rem;
+      margin: 0;
+      opacity: 0.9;
+      font-weight: 300;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .header-contact {
+      justify-self: end;
+      text-align: right;
     }
 
     .header-nav a {
@@ -293,29 +322,89 @@
     }
 
     /* Header responsive styles */
-    @media screen and (min-width: 600px) {
+    @media screen and (max-width: 599px) {
       .header-container {
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-      }
-
-      .header-brand {
-        text-align: left;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+        text-align: center;
       }
 
       .header-nav {
+        order: 3;
         flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        justify-self: center;
         gap: var(--spacing-md);
       }
 
+      .header-brand {
+        order: 1;
+        justify-self: center;
+      }
+
       .header-contact {
-        text-align: right;
+        order: 2;
+        justify-self: center;
+        text-align: center;
+        font-size: 0.8rem;
+      }
+
+      .brand-icon {
+        font-size: 2rem;
+      }
+
+      .brand-logo {
+        font-size: 1.5rem;
+      }
+
+      .brand-tagline {
+        font-size: 0.75rem;
+      }
+    }
+
+    @media screen and (min-width: 600px) {
+      .header-nav {
+        flex-direction: row;
+        gap: var(--spacing-md);
       }
     }
 
     @media screen and (min-width: 768px) {
       .branded-header {
         padding: var(--spacing-lg) var(--spacing-md);
+      }
+
+      .brand-icon {
+        font-size: 3rem;
+      }
+
+      .brand-logo {
+        font-size: 2.2rem;
+      }
+
+      .brand-tagline {
+        font-size: 0.95rem;
+      }
+
+      .header-nav a {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 1rem;
+      }
+
+      .header-contact {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .header-container {
+        grid-template-columns: 2fr auto 2fr;
+        min-height: 100px;
+      }
+
+      .brand-icon {
+        font-size: 3.5rem;
       }
 
       .brand-logo {
@@ -326,23 +415,12 @@
         font-size: 1rem;
       }
 
-      .header-nav a {
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: 1rem;
-      }
-    }
-
-    @media screen and (min-width: 1024px) {
-      .header-container {
-        grid-template-columns: 2fr auto 2fr;
-      }
-
-      .brand-logo {
-        font-size: 3rem;
-      }
-
       .header-nav {
         gap: var(--spacing-lg);
+      }
+
+      .header-contact {
+        font-size: 1rem;
       }
     }
 
@@ -1255,21 +1333,25 @@
         padding: var(--spacing-sm);
       }
 
-      .brand-logo {
+      .brand-icon {
         font-size: 1.5rem;
       }
 
+      .brand-logo {
+        font-size: 1.2rem;
+      }
+
       .brand-tagline {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
       }
 
       .header-nav a {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         padding: var(--spacing-xs);
       }
 
       .header-contact {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
       }
 
       h1 {
@@ -1333,13 +1415,20 @@
         padding: var(--spacing-sm);
       }
 
-      .header-container {
-        grid-template-columns: 1fr auto;
-        gap: var(--spacing-sm);
+      .brand-icon {
+        font-size: 1.8rem;
+      }
+
+      .brand-logo {
+        font-size: 1.4rem;
+      }
+
+      .brand-tagline {
+        font-size: 0.7rem;
       }
 
       .header-contact {
-        display: none; /* Hide contact on small screens */
+        font-size: 0.75rem;
       }
 
       .categories-container {
@@ -1732,11 +1821,17 @@
       text-align: center;
     }
 
-    .page-header .page-description {
+    .page-header  {
       font-size: 1rem;
       line-height: 1.6;
       color: var(--text-light);
       text-align: center;
+      margin: 0;
+    }
+    .page-description {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-light);
       margin: 0;
     }
 
@@ -2114,26 +2209,28 @@
 
   <header class="branded-header">
     <div class="header-container">
-      <div class="header-brand">
-        <h1 class="brand-logo">🏢 myTech.Today</h1>
-        <p class="brand-tagline">Professional MSP Services • Barrington, IL • (847) 767-4914</p>
-      </div>
-
       <nav class="header-nav">
         <a href="#" id="openInstructions">📖 Instructions</a>
         <a href="#" id="openPageStory">📜 Story</a>
       </nav>
 
+      <div class="header-brand">
+        <div class="brand-icon">🏢</div>
+        <h1 class="brand-logo"><a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a></h1>
+        <p class="brand-tagline">Professional MSP Services • Barrington, IL • (847) 767-4914</p>
+      </div>
+
       <div class="header-contact">
-        <a href="https://mytech.today/" target="_blank" rel="noopener noreferrer">mytech.today</a>
-        <a href="mailto:sales@mytech.today?subject=Business%20Search%20Tool%20Inquiry">sales@mytech.today</a>
+        <a href="mailto:sales@mytech.today?subject=Export%20Businesses" target="_blank">sales@mytech.today</a>
       </div>
     </div>
   </header>
 
   <!-- Page Header Section -->
   <section class="page-header">
-    <h2>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h2>
+    <h1>🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes! No API Required | myTech.Today</h1>
+    <p class="page-subtitle">Generate unlimited business leads instantly! Export thousands of local businesses with contact info, addresses & phone numbers. Free tool uses OpenStreetMap - no Google API needed. Perfect for MSPs, marketers & sales teams in Chicago, Illinois.</p>
+    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h3>
     <p class="page-description">
       This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate CSVs. No API key is required for basic functionality.
     </p>
@@ -3539,7 +3636,868 @@
             "94132": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Lake Merced)
             "94133": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (North Beach)
             "94134": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Visitacion Valley)
-            "94158": { lat: 37.7749, lng: -122.4194 } // San Francisco, CA (Mission Bay)
+            "94158": { lat: 37.7749, lng: -122.4194 }, // San Francisco, CA (Mission Bay)
+
+            // Additional Major US Cities ZIP Codes
+
+            // Los Angeles, CA (Additional ZIP codes)
+            "90001": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90002": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Watts)
+            "90003": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90004": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-Wilshire)
+            "90005": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Koreatown)
+            "90006": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Koreatown)
+            "90007": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (USC area)
+            "90008": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Baldwin Hills)
+            "90010": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-Wilshire)
+            "90011": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90012": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90013": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90014": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90015": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90016": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-City)
+            "90017": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90018": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-City)
+            "90019": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-City)
+            "90020": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Koreatown)
+            "90021": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90022": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Boyle Heights)
+            "90023": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Boyle Heights)
+            "90024": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Westwood)
+            "90025": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (West LA)
+            "90026": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Silver Lake)
+            "90027": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Los Feliz)
+            "90028": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Hollywood)
+            "90029": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (East Hollywood)
+            "90031": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Lincoln Heights)
+            "90032": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (El Sereno)
+            "90033": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Boyle Heights)
+            "90034": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-City)
+            "90035": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Pico-Robertson)
+            "90036": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mid-Wilshire)
+            "90037": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90038": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Hollywood)
+            "90039": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Atwater Village)
+            "90040": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Commerce)
+            "90041": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Eagle Rock)
+            "90042": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Highland Park)
+            "90043": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Leimert Park)
+            "90044": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90045": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Westchester)
+            "90046": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (West Hollywood)
+            "90047": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90048": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Beverly Grove)
+            "90049": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Brentwood)
+            "90056": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Ladera Heights)
+            "90057": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Westlake)
+            "90058": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Vernon)
+            "90059": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Watts)
+            "90061": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90062": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (South LA)
+            "90063": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Boyle Heights)
+            "90064": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (West LA)
+            "90065": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Glassell Park)
+            "90066": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Mar Vista)
+            "90067": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Century City)
+            "90068": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Hollywood Hills)
+            "90069": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (West Hollywood)
+            "90071": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Downtown)
+            "90077": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (Bel Air)
+            "90089": { lat: 34.0522, lng: -118.2437 }, // Los Angeles, CA (USC)
+            "90210": { lat: 34.0522, lng: -118.2437 }, // Beverly Hills, CA
+            "90211": { lat: 34.0522, lng: -118.2437 }, // Beverly Hills, CA
+            "90212": { lat: 34.0522, lng: -118.2437 }, // Beverly Hills, CA
+            "90401": { lat: 34.0195, lng: -118.4912 }, // Santa Monica, CA
+            "90402": { lat: 34.0195, lng: -118.4912 }, // Santa Monica, CA
+            "90403": { lat: 34.0195, lng: -118.4912 }, // Santa Monica, CA
+            "90404": { lat: 34.0195, lng: -118.4912 }, // Santa Monica, CA
+            "90405": { lat: 34.0195, lng: -118.4912 }, // Santa Monica, CA
+
+            // Houston, TX
+            "77001": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Downtown)
+            "77002": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Downtown)
+            "77003": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Third Ward)
+            "77004": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Museum District)
+            "77005": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Rice University)
+            "77006": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Montrose)
+            "77007": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Heights)
+            "77008": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Heights)
+            "77009": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Near Northside)
+            "77010": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Medical Center)
+            "77011": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (East End)
+            "77012": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (East End)
+            "77013": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (East Houston)
+            "77014": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Humble)
+            "77015": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Channelview)
+            "77016": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Champions)
+            "77017": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (South Houston)
+            "77018": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Heights)
+            "77019": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (River Oaks)
+            "77020": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Fifth Ward)
+            "77021": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Third Ward)
+            "77022": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Near Northside)
+            "77023": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (East End)
+            "77024": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Memorial)
+            "77025": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Bellaire)
+            "77026": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Kashmere Gardens)
+            "77027": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (River Oaks)
+            "77028": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Denver Harbor)
+            "77029": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Magnolia Park)
+            "77030": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Medical Center)
+            "77031": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Gulfton)
+            "77032": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Aldine)
+            "77033": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (South Park)
+            "77034": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Clear Lake)
+            "77035": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Meyerland)
+            "77036": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Sharpstown)
+            "77037": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Acres Homes)
+            "77038": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Humble)
+            "77039": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Aldine)
+            "77040": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77041": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Spring Branch)
+            "77042": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Westchase)
+            "77043": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Spring Branch)
+            "77044": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (East Houston)
+            "77045": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Airport)
+            "77046": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Galleria)
+            "77047": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Hobby Airport)
+            "77048": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Fondren Southwest)
+            "77049": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Greenspoint)
+            "77050": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Hobby Airport)
+            "77051": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Sunnyside)
+            "77052": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Galleria)
+            "77053": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77054": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Medical Center)
+            "77055": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Memorial)
+            "77056": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Galleria)
+            "77057": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Galleria)
+            "77058": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Clear Lake)
+            "77059": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Clear Lake)
+            "77060": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Greenspoint)
+            "77061": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77062": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Clear Lake)
+            "77063": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Spring Branch)
+            "77064": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77065": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77066": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Willowbrook)
+            "77067": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Willowbrook)
+            "77068": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Willowbrook)
+            "77069": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Willowbrook)
+            "77070": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77071": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77072": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77073": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Humble)
+            "77074": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77075": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77076": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Acres Homes)
+            "77077": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Energy Corridor)
+            "77078": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Acres Homes)
+            "77079": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Energy Corridor)
+            "77080": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Spring Branch)
+            "77081": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Meyerland)
+            "77082": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Westchase)
+            "77083": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Alief)
+            "77084": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Alief)
+            "77085": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+            "77086": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Greenspoint)
+            "77087": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (South Houston)
+            "77088": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Acres Homes)
+            "77089": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (South Houston)
+            "77090": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77091": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Acres Homes)
+            "77092": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Northwest Houston)
+            "77093": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Near Northside)
+            "77094": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Alief)
+            "77095": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Energy Corridor)
+            "77096": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Gulfton)
+            "77097": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Near Northside)
+            "77098": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Montrose)
+            "77099": { lat: 29.7604, lng: -95.3698 }, // Houston, TX (Southwest Houston)
+
+            // Phoenix, AZ
+            "85001": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Downtown)
+            "85002": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85003": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Downtown)
+            "85004": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Downtown)
+            "85005": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85006": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85007": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85008": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85009": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85010": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85011": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Maryvale)
+            "85012": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85013": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Central Phoenix)
+            "85014": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Biltmore)
+            "85015": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Central Phoenix)
+            "85016": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Arcadia)
+            "85017": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Maryvale)
+            "85018": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Arcadia)
+            "85019": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Maryvale)
+            "85020": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (South Phoenix)
+            "85021": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85022": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85023": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (West Phoenix)
+            "85024": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85027": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85028": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85029": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85031": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Maryvale)
+            "85032": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Paradise Valley)
+            "85033": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Maryvale)
+            "85034": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85035": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85037": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85040": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85041": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85042": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85043": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85044": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85045": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85048": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85050": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Ahwatukee)
+            "85051": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (Laveen)
+            "85053": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (West Phoenix)
+            "85054": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (North Phoenix)
+            "85083": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (West Phoenix)
+            "85085": { lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ (West Phoenix)
+
+            // Philadelphia, PA
+            "19101": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19102": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19103": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19104": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (University City)
+            "19105": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Society Hill)
+            "19106": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Old City)
+            "19107": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19108": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19109": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Center City)
+            "19110": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Hunting Park)
+            "19111": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19112": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19113": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Eastwick)
+            "19114": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19115": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19116": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19118": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Mount Airy)
+            "19119": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Mount Airy)
+            "19120": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Olney)
+            "19121": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (North Philadelphia)
+            "19122": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (North Philadelphia)
+            "19123": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northern Liberties)
+            "19124": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Kensington)
+            "19125": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Fishtown)
+            "19126": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (North Philadelphia)
+            "19127": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Manayunk)
+            "19128": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Roxborough)
+            "19129": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Nicetown)
+            "19130": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Fairmount)
+            "19131": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Wynnefield)
+            "19132": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Strawberry Mansion)
+            "19133": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (North Philadelphia)
+            "19134": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Kensington)
+            "19135": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19136": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19137": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19138": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Germantown)
+            "19139": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (West Philadelphia)
+            "19140": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (North Philadelphia)
+            "19141": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Logan)
+            "19142": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Southwest)
+            "19143": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (West Philadelphia)
+            "19144": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Germantown)
+            "19145": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (South Philadelphia)
+            "19146": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (South Philadelphia)
+            "19147": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (South Philadelphia)
+            "19148": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (South Philadelphia)
+            "19149": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19150": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Mount Airy)
+            "19151": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (West Philadelphia)
+            "19152": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+            "19153": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Southwest)
+            "19154": { lat: 39.9526, lng: -75.1652 }, // Philadelphia, PA (Northeast)
+
+            // San Antonio, TX
+            "78201": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Downtown)
+            "78202": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78203": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Southtown)
+            "78204": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78205": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Downtown)
+            "78207": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (West Side)
+            "78208": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78209": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Alamo Heights)
+            "78210": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78211": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78212": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Monte Vista)
+            "78213": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Central)
+            "78214": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78215": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78216": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Central)
+            "78217": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78218": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78219": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78220": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78221": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78222": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78223": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78224": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78225": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (West Side)
+            "78226": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (West Side)
+            "78227": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (West Side)
+            "78228": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78229": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Side)
+            "78230": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Central)
+            "78231": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Side)
+            "78232": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Central)
+            "78233": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78234": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78235": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Kelly AFB)
+            "78236": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78237": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (West Side)
+            "78238": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Lackland AFB)
+            "78239": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78240": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78242": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (South Side)
+            "78244": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (East Side)
+            "78245": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Southwest)
+            "78247": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Side)
+            "78248": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+            "78249": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78250": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78251": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78252": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Side)
+            "78253": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Southwest)
+            "78254": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78255": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northwest)
+            "78256": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (North Side)
+            "78257": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+            "78258": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+            "78259": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+            "78260": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+            "78261": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78263": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78264": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Northeast)
+            "78266": { lat: 29.4241, lng: -98.4936 }, // San Antonio, TX (Stone Oak)
+
+            // San Diego, CA
+            "92101": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Downtown)
+            "92102": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Golden Hill)
+            "92103": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Balboa Park)
+            "92104": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (North Park)
+            "92105": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (City Heights)
+            "92106": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Point Loma)
+            "92107": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Ocean Beach)
+            "92108": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Mission Valley)
+            "92109": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Pacific Beach)
+            "92110": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Mission Bay)
+            "92111": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Clairemont)
+            "92113": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Southeast)
+            "92114": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Southeast)
+            "92115": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (College Area)
+            "92116": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Normal Heights)
+            "92117": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Clairemont)
+            "92118": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Coronado)
+            "92119": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (College Area)
+            "92120": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (College Area)
+            "92121": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Sorrento Valley)
+            "92122": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (University City)
+            "92123": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Serra Mesa)
+            "92124": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Tierrasanta)
+            "92126": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Mira Mesa)
+            "92127": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Rancho Bernardo)
+            "92128": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Rancho Bernardo)
+            "92129": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Rancho Penasquitos)
+            "92130": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Carmel Valley)
+            "92131": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Scripps Ranch)
+            "92132": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (SDSU)
+            "92134": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Naval Base)
+            "92135": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Naval Base)
+            "92136": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Point Loma)
+            "92139": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Paradise Hills)
+            "92140": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Bay Terraces)
+            "92145": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Naval Base)
+            "92154": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Otay Mesa)
+            "92155": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (Otay Mesa)
+            "92173": { lat: 32.7157, lng: -117.1611 }, // San Diego, CA (San Ysidro)
+
+            // Dallas, TX
+            "75201": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Downtown)
+            "75202": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Downtown)
+            "75203": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (South Dallas)
+            "75204": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Deep Ellum)
+            "75205": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Highland Park)
+            "75206": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75207": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Oak Cliff)
+            "75208": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Oak Cliff)
+            "75209": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Turtle Creek)
+            "75210": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75211": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Oak Cliff)
+            "75212": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (West Dallas)
+            "75214": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Lakewood)
+            "75215": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (South Dallas)
+            "75216": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (South Dallas)
+            "75217": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Pleasant Grove)
+            "75218": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75219": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Uptown)
+            "75220": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Love Field)
+            "75223": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75224": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75225": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (University Park)
+            "75226": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75227": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Pleasant Grove)
+            "75228": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75229": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75230": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75231": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75232": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Pleasant Grove)
+            "75233": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (South Dallas)
+            "75234": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75235": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Northwest Dallas)
+            "75236": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Southeast Dallas)
+            "75237": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Southeast Dallas)
+            "75238": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (White Rock Lake)
+            "75240": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75243": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (Northeast Dallas)
+            "75244": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75246": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (East Dallas)
+            "75247": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (West Dallas)
+            "75248": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75249": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75251": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75252": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75253": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75254": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+            "75287": { lat: 32.7767, lng: -96.7970 }, // Dallas, TX (North Dallas)
+
+            // Jacksonville, FL
+            "32099": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Ponte Vedra)
+            "32201": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Downtown)
+            "32202": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Downtown)
+            "32203": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Springfield)
+            "32204": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Riverside)
+            "32205": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Riverside)
+            "32206": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Eastside)
+            "32207": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (San Marco)
+            "32208": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northwest)
+            "32209": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northwest)
+            "32210": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32211": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32212": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32216": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32217": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32218": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32219": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32220": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Westside)
+            "32221": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32222": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Northside)
+            "32223": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32224": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32225": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Arlington)
+            "32226": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32227": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32233": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Eastside)
+            "32234": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Westside)
+            "32244": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Westside)
+            "32246": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32250": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Neptune Beach)
+            "32254": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32256": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32257": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32258": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32259": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+            "32266": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Neptune Beach)
+            "32277": { lat: 30.3322, lng: -81.6557 }, // Jacksonville, FL (Southside)
+
+            // Fort Worth, TX
+            "76101": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Downtown)
+            "76102": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Downtown)
+            "76103": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southside)
+            "76104": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southside)
+            "76105": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Riverside)
+            "76106": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Westside)
+            "76107": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Cultural District)
+            "76108": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Westside)
+            "76109": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Westside)
+            "76110": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Eastside)
+            "76111": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Eastside)
+            "76112": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Eastside)
+            "76114": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northside)
+            "76115": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southside)
+            "76116": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Westside)
+            "76117": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northside)
+            "76118": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northside)
+            "76119": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southside)
+            "76120": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Arlington Heights)
+            "76123": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76126": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76127": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76129": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76131": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76132": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76133": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76134": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76135": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76137": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northeast)
+            "76140": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southeast)
+            "76147": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76148": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76155": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northeast)
+            "76161": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76162": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76163": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76164": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Southwest)
+            "76177": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76179": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northwest)
+            "76180": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northeast)
+            "76182": { lat: 32.7555, lng: -97.3308 }, // Fort Worth, TX (Northeast)
+
+            // Austin, TX
+            "78701": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Downtown)
+            "78702": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78703": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (South Austin)
+            "78704": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (South Austin)
+            "78705": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (UT Campus)
+            "78712": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (UT Campus)
+            "78717": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+            "78719": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southeast)
+            "78721": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78722": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78723": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78724": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78725": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78726": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+            "78727": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+            "78728": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78729": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+            "78730": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Lake Hills)
+            "78731": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Austin)
+            "78732": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Austin)
+            "78733": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Austin)
+            "78734": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Austin)
+            "78735": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78736": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78737": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78738": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78739": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78741": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southeast)
+            "78742": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southeast)
+            "78744": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southeast)
+            "78745": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (South Austin)
+            "78746": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (West Austin)
+            "78747": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78748": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (South Austin)
+            "78749": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Southwest)
+            "78750": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+            "78751": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Central Austin)
+            "78752": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78753": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (North Austin)
+            "78754": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (East Austin)
+            "78756": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Central Austin)
+            "78757": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (North Austin)
+            "78758": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (North Austin)
+            "78759": { lat: 30.2672, lng: -97.7431 }, // Austin, TX (Northwest)
+
+            // Charlotte, NC
+            "28201": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Uptown)
+            "28202": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Uptown)
+            "28203": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Dilworth)
+            "28204": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South End)
+            "28205": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Plaza Midwood)
+            "28206": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Elizabeth)
+            "28207": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Myers Park)
+            "28208": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (West Charlotte)
+            "28209": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South Park)
+            "28210": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (SouthPark)
+            "28211": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South Charlotte)
+            "28212": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (East Charlotte)
+            "28213": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (University)
+            "28214": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (West Charlotte)
+            "28215": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (East Charlotte)
+            "28216": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (North Charlotte)
+            "28217": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South Charlotte)
+            "28226": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Ballantyne)
+            "28227": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Southeast)
+            "28262": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (University)
+            "28269": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (University)
+            "28270": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Ballantyne)
+            "28273": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Steele Creek)
+            "28277": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Ballantyne)
+            "28278": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (Steele Creek)
+            "28280": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South Charlotte)
+            "28282": { lat: 35.2271, lng: -80.8431 }, // Charlotte, NC (South Charlotte)
+
+            // Columbus, OH
+            "43085": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Worthington)
+            "43201": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (University District)
+            "43202": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Clintonville)
+            "43203": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (South Side)
+            "43204": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Hilltop)
+            "43205": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Grandview)
+            "43206": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (German Village)
+            "43207": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (South Side)
+            "43209": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Bexley)
+            "43210": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (OSU Campus)
+            "43211": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (North Side)
+            "43212": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Clintonville)
+            "43213": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (East Side)
+            "43214": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (North Side)
+            "43215": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Downtown)
+            "43219": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (East Side)
+            "43220": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Upper Arlington)
+            "43221": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Grandview)
+            "43222": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (West Side)
+            "43223": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (South Side)
+            "43224": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (North Side)
+            "43227": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (East Side)
+            "43228": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (West Side)
+            "43229": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (North Side)
+            "43230": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Westerville)
+            "43231": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Northeast)
+            "43232": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (East Side)
+            "43235": { lat: 39.9612, lng: -82.9988 }, // Columbus, OH (Dublin)
+
+            // Indianapolis, IN
+            "46201": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Downtown)
+            "46202": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Near North)
+            "46203": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Near South)
+            "46204": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Near West)
+            "46205": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Meridian-Kessler)
+            "46208": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46214": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46216": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46217": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (South Side)
+            "46218": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46219": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46220": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46221": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46222": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46224": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46225": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (South Side)
+            "46226": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46227": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (South Side)
+            "46228": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46229": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46231": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (South Side)
+            "46234": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46235": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (East Side)
+            "46236": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Northeast)
+            "46237": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Southwest)
+            "46239": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (South Side)
+            "46240": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (Carmel)
+            "46250": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46254": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (West Side)
+            "46256": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46260": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46268": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+            "46278": { lat: 39.7684, lng: -86.1581 }, // Indianapolis, IN (North Side)
+
+            // Denver, CO
+            "80201": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Downtown)
+            "80202": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Downtown)
+            "80203": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Capitol Hill)
+            "80204": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Glendale)
+            "80205": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Five Points)
+            "80206": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Cherry Creek)
+            "80207": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Elyria-Swansea)
+            "80208": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Cherry Creek)
+            "80209": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Glendale)
+            "80210": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Cherry Creek)
+            "80211": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Berkeley)
+            "80212": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakeside)
+            "80214": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80215": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80216": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Elyria-Swansea)
+            "80218": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Mayfair)
+            "80219": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Ruby Hill)
+            "80220": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Glendale)
+            "80221": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Northglenn)
+            "80222": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Glendale)
+            "80223": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Sheridan)
+            "80224": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Glendale)
+            "80226": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80227": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80230": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+            "80231": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+            "80232": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+            "80233": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Northglenn)
+            "80234": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Northglenn)
+            "80235": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80236": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Lakewood)
+            "80237": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Montbello)
+            "80238": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+            "80239": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Montbello)
+            "80246": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Cherry Creek)
+            "80247": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+            "80249": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Green Valley Ranch)
+            "80264": { lat: 39.7392, lng: -104.9903 }, // Denver, CO (Stapleton)
+
+            // Oklahoma City, OK
+            "73101": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Downtown)
+            "73102": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Downtown)
+            "73103": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northeast)
+            "73104": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (North)
+            "73105": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northeast)
+            "73106": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73107": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73108": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73109": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73110": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Midwest City)
+            "73111": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northeast)
+            "73112": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73114": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (North)
+            "73115": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (East)
+            "73116": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73117": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (North)
+            "73118": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Nichols Hills)
+            "73119": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73120": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73121": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northeast)
+            "73122": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73127": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (West)
+            "73128": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73129": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73130": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Midwest City)
+            "73131": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73132": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73134": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (North)
+            "73135": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Southeast)
+            "73139": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73141": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northeast)
+            "73142": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73159": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73160": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73162": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (Northwest)
+            "73169": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73170": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73173": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+            "73179": { lat: 35.4676, lng: -97.5164 }, // Oklahoma City, OK (South)
+
+            // Nashville, TN
+            "37201": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Downtown)
+            "37202": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Downtown)
+            "37203": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (West End)
+            "37204": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Green Hills)
+            "37205": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Belle Meade)
+            "37206": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (East Nashville)
+            "37207": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (North Nashville)
+            "37208": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (North Nashville)
+            "37209": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Sylvan Park)
+            "37210": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (South Nashville)
+            "37211": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (South Nashville)
+            "37212": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Music Row)
+            "37213": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Donelson)
+            "37214": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (East Nashville)
+            "37215": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Green Hills)
+            "37216": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (East Nashville)
+            "37217": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (South Nashville)
+            "37218": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (North Nashville)
+            "37219": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (West End)
+            "37220": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Belle Meade)
+            "37221": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Bellevue)
+            "37228": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (North Nashville)
+            "37240": { lat: 36.1627, lng: -86.7816 }, // Nashville, TN (Vanderbilt)
+
+            // Washington, DC
+            "20001": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northeast)
+            "20002": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northeast)
+            "20003": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southeast)
+            "20004": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Downtown)
+            "20005": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Downtown)
+            "20006": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Downtown)
+            "20007": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Georgetown)
+            "20008": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northwest)
+            "20009": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Dupont Circle)
+            "20010": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Columbia Heights)
+            "20011": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northwest)
+            "20012": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northeast)
+            "20015": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northwest)
+            "20016": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northwest)
+            "20017": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northeast)
+            "20018": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Northeast)
+            "20019": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southeast)
+            "20020": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southeast)
+            "20024": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southwest)
+            "20032": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southeast)
+            "20036": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Dupont Circle)
+            "20037": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Foggy Bottom)
+            "20052": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (GWU)
+            "20057": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Georgetown University)
+            "20064": { lat: 38.9072, lng: -77.0369 }, // Washington, DC (Southwest)
+
+            // El Paso, TX
+            "79901": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Downtown)
+            "79902": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (South Central)
+            "79903": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Central)
+            "79904": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (East)
+            "79905": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Central)
+            "79906": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (East)
+            "79907": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Northeast)
+            "79908": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Northeast)
+            "79911": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (East)
+            "79912": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79915": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (East)
+            "79922": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Northeast)
+            "79924": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Northeast)
+            "79925": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (Northeast)
+            "79927": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79928": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79930": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79932": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79934": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79935": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79936": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+            "79938": { lat: 31.7619, lng: -106.4850 }, // El Paso, TX (West)
+
+            // Boston, MA
+            "02101": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02102": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02103": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02104": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02105": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02106": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02107": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02108": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Beacon Hill)
+            "02109": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (North End)
+            "02110": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02111": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Chinatown)
+            "02112": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South End)
+            "02113": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (North End)
+            "02114": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Beacon Hill)
+            "02115": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02116": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02117": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02118": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South End)
+            "02119": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Roxbury)
+            "02120": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Mission Hill)
+            "02121": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Dorchester)
+            "02122": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Dorchester)
+            "02123": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Dorchester)
+            "02124": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Dorchester)
+            "02125": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Dorchester)
+            "02126": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Mattapan)
+            "02127": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02128": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (East Boston)
+            "02129": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Charlestown)
+            "02130": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Jamaica Plain)
+            "02131": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Roslindale)
+            "02132": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (West Roxbury)
+            "02133": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02134": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Allston)
+            "02135": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Brighton)
+            "02136": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Hyde Park)
+            "02137": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Readville)
+            "02163": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02199": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02201": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02203": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Downtown)
+            "02204": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02205": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Back Bay)
+            "02206": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02210": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02211": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02212": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (South Boston)
+            "02215": { lat: 42.3601, lng: -71.0589 }, // Boston, MA (Fenway)
+            "02467": { lat: 42.3601, lng: -71.0589 } // Boston, MA (Chestnut Hill)
           };
           
           // Check if the ZIP code exists in the hardcoded mapping
@@ -4793,7 +5751,10 @@ out center tags;`;
 
         // Generate the zip file
         log("Generating ZIP file...");
-        const zipBlob = await zip.generateAsync({type: "blob"});
+        const internalBlob = await zip.generateAsync({type: "blob"});
+
+        // Wrap blob in new Blob({ type: "application/zip" }) to reduce Windows security warnings
+        const zipBlob = new Blob([internalBlob], { type: "application/zip" });
 
         // Create download link for the zip
         const zipUrl = URL.createObjectURL(zipBlob);
@@ -4805,6 +5766,9 @@ out center tags;`;
         document.body.appendChild(zipLink);
         zipLink.click();
         document.body.removeChild(zipLink);
+
+        // Clean up the object URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
 
         log("=== ZIP file downloaded ===");
       }
