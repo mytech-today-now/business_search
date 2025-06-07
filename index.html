@@ -2326,9 +2326,9 @@
   <section class="page-header">
     <h1>🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes! No API Required | myTech.Today</h1>
     <p class="page-subtitle">Generate unlimited business leads instantly! Export thousands of local businesses with contact info, addresses & phone numbers. Free tool uses OpenStreetMap - no Google API needed. Perfect for MSPs, marketers & sales teams in Chicago, Illinois.</p>
-    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as XLS or CSV</h3>
+    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as XLSX, XLS or CSV</h3>
     <p class="page-description">
-      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate files in your preferred format (XLS or CSV). No API key is required for basic functionality.
+      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate files in your preferred format (XLSX, XLS or CSV). No API key is required for basic functionality.
     </p>
 
     <div class="page-controls">
@@ -2426,11 +2426,14 @@
 
           <!-- Export Format Settings -->
           <div class="settings-group">
+            <!-- Added .xlsx support as default: Jun 2025 -->
             <div id="export-format-toggle" class="settings-section footer-setting">
               <label>Download Format:</label>
               <div class="export-format-toggle">
                 <div class="format-toggle-switch">
-                  <input type="radio" name="exportFormat" id="xlsFormat" value="xls" checked>
+                  <input type="radio" name="exportFormat" id="xlsxFormat" value="xlsx" checked>
+                  <label for="xlsxFormat">XLSX</label>
+                  <input type="radio" name="exportFormat" id="xlsFormat" value="xls">
                   <label for="xlsFormat">XLS</label>
                   <input type="radio" name="exportFormat" id="csvFormat" value="csv">
                   <label for="csvFormat">CSV</label>
@@ -2474,6 +2477,7 @@
           <li>💾 Local Storage</li>
           <li>📦 JSZip Library</li>
           <li>📝 Marked.js (Markdown)</li>
+          <li>📋 SheetJS (XLSX)</li>
         </ul>
       </div>
 
@@ -2587,13 +2591,15 @@
       // Export Format Settings Initialization
       // ======================================================
       window.initializeExportFormatSettings = function initializeExportFormatSettings() {
-        // Read export format from localStorage (default to XLS)
-        const storedFormat = localStorage.getItem("exportFormat") || "xls";
+        // Read export format from localStorage (default to XLSX)
+        const storedFormat = localStorage.getItem("exportFormat") || "xlsx";
 
         if (storedFormat === "csv") {
           document.getElementById("csvFormat").checked = true;
-        } else {
+        } else if (storedFormat === "xls") {
           document.getElementById("xlsFormat").checked = true;
+        } else {
+          document.getElementById("xlsxFormat").checked = true;
         }
 
         console.log("Export format initialized:", storedFormat.toUpperCase());
@@ -2726,7 +2732,7 @@
 
           // Generate download link
           const filename = generateFilename(filters);
-          generateDownloadLink(filename, csvRows);
+          await generateDownloadLink(filename, csvRows);
 
           return {
             success: true,
@@ -2870,7 +2876,7 @@
       }
 
       // Helper function to generate download link for Google Places data
-      function generateDownloadLink(filename, csvRows) {
+      async function generateDownloadLink(filename, csvRows) {
         try {
           // Add header if not present
           const headerRow = [
@@ -2882,12 +2888,13 @@
 
           // Get selected export format and generate appropriate content
           const exportFormat = getSelectedExportFormat();
-          const fileContent = generateFileContent(allRows, exportFormat);
+          const fileContent = await generateFileContent(allRows, exportFormat);
           const mimeType = getFileMimeType(exportFormat);
           const finalFilename = updateFilename(filename, exportFormat);
 
           // Create blob and download link
-          const blob = new Blob([fileContent], { type: mimeType });
+          // Handle different content types (string vs Blob)
+          const blob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: mimeType });
           const url = URL.createObjectURL(blob);
 
           // Create enhanced download link element
@@ -2897,7 +2904,7 @@
           downloadLink.className = "download-link";
 
           // Create the enhanced download link structure
-          const formatIcon = exportFormat === 'csv' ? '📊' : '📈';
+          const formatIcon = exportFormat === 'csv' ? '📊' : (exportFormat === 'xlsx' ? '📋' : '📈');
           downloadLink.innerHTML = `
             <div class="download-link-content">
               <div class="download-link-icon">${formatIcon}</div>
@@ -6630,16 +6637,91 @@ out center tags;`;
       }
 
       // ======================================================
+      // XLSX Generation Functions (using SheetJS)
+      // ======================================================
+      async function generateXLSXBlob(rows) {
+        try {
+          // Dynamically load SheetJS library only when needed
+          if (typeof XLSX === 'undefined') {
+            await loadSheetJSLibrary();
+          }
+
+          // Create a new workbook
+          const wb = XLSX.utils.book_new();
+
+          // Convert rows to worksheet
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+
+          // Add some basic styling to header row
+          if (rows.length > 0) {
+            const headerRange = XLSX.utils.decode_range(ws['!ref']);
+            for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+              const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+              if (ws[cellAddress]) {
+                ws[cellAddress].s = {
+                  font: { bold: true },
+                  fill: { fgColor: { rgb: "E6E6FA" } }
+                };
+              }
+            }
+          }
+
+          // Add worksheet to workbook
+          XLSX.utils.book_append_sheet(wb, ws, "Business Data");
+
+          // Generate XLSX file as array buffer
+          const arrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+          // Convert to blob
+          return new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        } catch (error) {
+          console.error('Error generating XLSX file:', error);
+          window.log && window.log(`[!] Error generating XLSX file: ${error.message}. Falling back to XLS format.`);
+          // Fallback to XLS format if XLSX generation fails
+          throw error;
+        }
+      }
+
+      async function loadSheetJSLibrary() {
+        return new Promise((resolve, reject) => {
+          if (typeof XLSX !== 'undefined') {
+            resolve();
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          script.onload = () => {
+            console.log('SheetJS library loaded successfully');
+            resolve();
+          };
+          script.onerror = () => {
+            console.error('Failed to load SheetJS library');
+            reject(new Error('Failed to load XLSX library'));
+          };
+          document.head.appendChild(script);
+        });
+      }
+
+      // ======================================================
       // Export Format Helper Functions
       // ======================================================
       function getSelectedExportFormat() {
         const formatRadio = document.querySelector('input[name="exportFormat"]:checked');
-        return formatRadio ? formatRadio.value : 'xls'; // Default to XLS
+        return formatRadio ? formatRadio.value : 'xlsx'; // Default to XLSX
       }
 
-      function generateFileContent(rows, format) {
+      async function generateFileContent(rows, format) {
         if (format === 'csv') {
           return generateCSVString(rows);
+        } else if (format === 'xlsx') {
+          try {
+            return await generateXLSXBlob(rows);
+          } catch (error) {
+            console.warn('XLSX generation failed, falling back to XLS:', error);
+            window.log && window.log(`[!] XLSX generation failed, using XLS format instead: ${error.message}`);
+            return generateXLSString(rows);
+          }
         } else {
           return generateXLSString(rows);
         }
@@ -6648,6 +6730,8 @@ out center tags;`;
       function getFileMimeType(format) {
         if (format === 'csv') {
           return 'text/csv;charset=utf-8;';
+        } else if (format === 'xlsx') {
+          return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;';
         } else {
           return 'application/vnd.ms-excel;charset=utf-8;';
         }
@@ -6655,7 +6739,7 @@ out center tags;`;
 
       function updateFilename(filename, format) {
         // Remove existing extension and add new one
-        const baseName = filename.replace(/\.(csv|xls)$/i, '');
+        const baseName = filename.replace(/\.(csv|xlsx|xls)$/i, '');
         return `${baseName}.${format}`;
       }
 
@@ -6726,11 +6810,12 @@ out center tags;`;
 
         // Get selected export format and generate appropriate content
         const exportFormat = getSelectedExportFormat();
-        const fileContent = generateFileContent(rows, exportFormat);
+        const fileContent = await generateFileContent(rows, exportFormat);
         const mimeType = getFileMimeType(exportFormat);
         const finalFilename = updateFilename(filename, exportFormat);
 
-        const blob = new Blob([fileContent], { type: mimeType });
+        // Handle different content types (string vs Blob)
+        const blob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: mimeType });
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = blobUrl;
@@ -6739,7 +6824,7 @@ out center tags;`;
 
         // Create the enhanced download link structure
         const rowCount = rows.length - 1; // Subtract header row
-        const formatIcon = exportFormat === 'csv' ? '📊' : '📈';
+        const formatIcon = exportFormat === 'csv' ? '📊' : (exportFormat === 'xlsx' ? '📋' : '📈');
         link.innerHTML = `
           <div class="download-link-content">
             <div class="download-link-icon">${formatIcon}</div>
@@ -7384,12 +7469,21 @@ out center tags;`;
               trackError('Configuration Error', 'Google Maps selected without API key');
 
         // Handle export format toggle
+        const xlsxFormat = document.getElementById("xlsxFormat");
         const xlsFormat = document.getElementById("xlsFormat");
         const csvFormat = document.getElementById("csvFormat");
 
+        xlsxFormat.addEventListener("change", function() {
+          if (this.checked) {
+            trackSettingsChange('Export Format', 'XLS/CSV', 'XLSX');
+            localStorage.setItem("exportFormat", "xlsx");
+            console.log("Export format set to:", "XLSX");
+          }
+        });
+
         xlsFormat.addEventListener("change", function() {
           if (this.checked) {
-            trackSettingsChange('Export Format', 'CSV', 'XLS');
+            trackSettingsChange('Export Format', 'XLSX/CSV', 'XLS');
             localStorage.setItem("exportFormat", "xls");
             console.log("Export format set to:", "XLS");
           }
@@ -7397,7 +7491,7 @@ out center tags;`;
 
         csvFormat.addEventListener("change", function() {
           if (this.checked) {
-            trackSettingsChange('Export Format', 'XLS', 'CSV');
+            trackSettingsChange('Export Format', 'XLSX/XLS', 'CSV');
             localStorage.setItem("exportFormat", "csv");
             console.log("Export format set to:", "CSV");
           }
