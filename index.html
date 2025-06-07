@@ -1234,6 +1234,75 @@
       flex-wrap: wrap;
     }
 
+    /* ========================================
+       EXPORT FORMAT TOGGLE SETTINGS
+       ======================================== */
+
+    .footer-settings-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .settings-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .divider-vertical {
+      width: 1px;
+      height: 40px;
+      background: var(--light-border);
+      margin: 0 var(--spacing-md);
+    }
+
+    .export-format-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .export-format-toggle label {
+      font-weight: 500;
+      color: var(--text-color);
+      margin-right: var(--spacing-sm);
+    }
+
+    .format-toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      background: var(--background-light);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-xs);
+    }
+
+    .format-toggle-switch input[type="radio"] {
+      margin: 0;
+    }
+
+    .format-toggle-switch label {
+      margin: 0;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .format-toggle-switch input[type="radio"]:checked + label {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .format-toggle-switch input[type="radio"]:not(:checked) + label:hover {
+      background: rgba(0, 75, 141, 0.1);
+    }
+
     .map-provider-toggle {
       display: flex;
       align-items: center;
@@ -1312,6 +1381,12 @@
         gap: var(--spacing-xs);
       }
 
+      .export-format-toggle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+      }
+
       .settings-section label {
         min-width: auto;
       }
@@ -1319,6 +1394,27 @@
       #googleApiKeyInput {
         width: 100%;
         max-width: 250px;
+      }
+
+      .settings-row {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .divider-vertical {
+        display: none;
+      }
+    }
+
+    @media screen and (min-width: 600px) {
+      .settings-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .footer-settings-container {
+        gap: var(--spacing-lg);
       }
     }
 
@@ -2230,9 +2326,9 @@
   <section class="page-header">
     <h1>🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes! No API Required | myTech.Today</h1>
     <p class="page-subtitle">Generate unlimited business leads instantly! Export thousands of local businesses with contact info, addresses & phone numbers. Free tool uses OpenStreetMap - no Google API needed. Perfect for MSPs, marketers & sales teams in Chicago, Illinois.</p>
-    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as CSV</h3>
+    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as XLS or CSV</h3>
     <p class="page-description">
-      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate CSVs. No API key is required for basic functionality.
+      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate files in your preferred format (XLS or CSV). No API key is required for basic functionality.
     </p>
 
     <div class="page-controls">
@@ -2300,25 +2396,49 @@
   <footer>
     <!-- Map Provider & API Settings Section -->
     <div class="footer-settings">
-      <h3>⚙️ Map Provider Settings</h3>
+      <h3>⚙️ Settings</h3>
 
-      <div id="mapProviderContainer" class="settings-section">
-        <label>Map Provider:</label>
-        <div class="map-provider-toggle">
-          <input type="radio" name="mapProvider" id="osmProvider" value="osm" checked>
-          <label for="osmProvider">OpenStreetMap</label>
-          <input type="radio" name="mapProvider" id="googleProvider" value="google">
-          <label for="googleProvider">Google Maps</label>
+      <div class="footer-settings-container">
+        <div class="settings-row">
+          <!-- Map Provider Settings -->
+          <div class="settings-group">
+            <div id="mapProviderContainer" class="settings-section">
+              <label>Map Provider:</label>
+              <div class="map-provider-toggle">
+                <input type="radio" name="mapProvider" id="osmProvider" value="osm" checked>
+                <label for="osmProvider">OpenStreetMap</label>
+                <input type="radio" name="mapProvider" id="googleProvider" value="google">
+                <label for="googleProvider">Google Maps</label>
+              </div>
+            </div>
+
+            <div id="googleKeyContainer" class="settings-section">
+              <label for="googleApiKeyInput">Google API Key:</label>
+              <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
+              <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
+              <button type="button" id="saveGoogleKeyBtn">Save Key</button>
+              <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
+              <span id="googleKeyStatus" class="status-message"></span>
+            </div>
+          </div>
+
+          <div class="divider-vertical"></div>
+
+          <!-- Export Format Settings -->
+          <div class="settings-group">
+            <div id="export-format-toggle" class="settings-section footer-setting">
+              <label>Download Format:</label>
+              <div class="export-format-toggle">
+                <div class="format-toggle-switch">
+                  <input type="radio" name="exportFormat" id="xlsFormat" value="xls" checked>
+                  <label for="xlsFormat">XLS</label>
+                  <input type="radio" name="exportFormat" id="csvFormat" value="csv">
+                  <label for="csvFormat">CSV</label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div id="googleKeyContainer" class="settings-section">
-        <label for="googleApiKeyInput">Google API Key:</label>
-        <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
-        <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
-        <button type="button" id="saveGoogleKeyBtn">Save Key</button>
-        <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
-        <span id="googleKeyStatus" class="status-message"></span>
       </div>
     </div>
 
@@ -2461,6 +2581,22 @@
         }
 
         console.log("Map provider initialized:", USE_GOOGLE_MAPS ? "Google" : "OpenStreetMap");
+      }
+
+      // ======================================================
+      // Export Format Settings Initialization
+      // ======================================================
+      window.initializeExportFormatSettings = function initializeExportFormatSettings() {
+        // Read export format from localStorage (default to XLS)
+        const storedFormat = localStorage.getItem("exportFormat") || "xls";
+
+        if (storedFormat === "csv") {
+          document.getElementById("csvFormat").checked = true;
+        } else {
+          document.getElementById("xlsFormat").checked = true;
+        }
+
+        console.log("Export format initialized:", storedFormat.toUpperCase());
       }
 
       // Helper function to obscure API key in input - make this global
@@ -2733,35 +2869,41 @@
         return `google_places_${filterStr}`.replace(/[^a-zA-Z0-9_]/g, '_');
       }
 
-      // Helper function to generate download link for CSV data
+      // Helper function to generate download link for Google Places data
       function generateDownloadLink(filename, csvRows) {
         try {
-          // Add CSV header if not present
+          // Add header if not present
           const headerRow = [
             "Business Name", "Address", "Latitude", "Longitude", "Distance",
             "Phone", "Website", "Business Types", "Rating", "Price Level", "Place ID"
           ];
 
           const allRows = [headerRow, ...csvRows];
-          const csvContent = generateCSVString(allRows);
+
+          // Get selected export format and generate appropriate content
+          const exportFormat = getSelectedExportFormat();
+          const fileContent = generateFileContent(allRows, exportFormat);
+          const mimeType = getFileMimeType(exportFormat);
+          const finalFilename = updateFilename(filename, exportFormat);
 
           // Create blob and download link
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const blob = new Blob([fileContent], { type: mimeType });
           const url = URL.createObjectURL(blob);
 
           // Create enhanced download link element
           const downloadLink = document.createElement("a");
           downloadLink.href = url;
-          downloadLink.download = `${filename}.csv`;
+          downloadLink.download = finalFilename;
           downloadLink.className = "download-link";
 
           // Create the enhanced download link structure
+          const formatIcon = exportFormat === 'csv' ? '📊' : '📈';
           downloadLink.innerHTML = `
             <div class="download-link-content">
-              <div class="download-link-icon">📊</div>
+              <div class="download-link-icon">${formatIcon}</div>
               <div class="download-link-info">
-                <div class="download-link-title">${filename}.csv</div>
-                <div class="download-link-meta">${csvRows.length} results • ${(blob.size / 1024).toFixed(1)} KB</div>
+                <div class="download-link-title">${finalFilename}</div>
+                <div class="download-link-meta">${csvRows.length} results • ${(blob.size / 1024).toFixed(1)} KB • ${exportFormat.toUpperCase()}</div>
               </div>
             </div>
             <div class="download-link-action">Download</div>
@@ -2774,7 +2916,7 @@
             updateResultsContainer();
           }
 
-          window.log(`   → Download link created: ${filename}.csv`);
+          window.log(`   → Download link created: ${finalFilename}`);
 
         } catch (error) {
           console.error("Error generating download link:", error);
@@ -6434,7 +6576,91 @@ out center tags;`;
       }
 
       // ======================================================
-      // Process a single category: fetch OSM data, build CSV rows, provide download link
+      // XLS Generation Functions
+      // ======================================================
+      function generateXLSString(rows) {
+        // Simple XLS format using HTML table structure
+        // This creates a basic Excel-compatible file
+        let xlsContent = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>myTech.Today Business Search Tool</Author>
+  <Created>${new Date().toISOString()}</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="HeaderStyle">
+   <Font ss:Bold="1"/>
+   <Interior ss:Color="#E6E6FA" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Business Data">
+  <Table>`;
+
+        rows.forEach((row, index) => {
+          xlsContent += '\n   <Row>';
+          row.forEach(cell => {
+            const cellValue = String(cell || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            if (index === 0) {
+              // Header row - use bold styling
+              xlsContent += `<Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">${cellValue}</Data></Cell>`;
+            } else {
+              // Data row - detect if numeric
+              const trimmedValue = cellValue.trim();
+              const isNumeric = trimmedValue !== '' && !isNaN(trimmedValue) && !isNaN(parseFloat(trimmedValue));
+              if (isNumeric) {
+                xlsContent += `<Cell><Data ss:Type="Number">${trimmedValue}</Data></Cell>`;
+              } else {
+                xlsContent += `<Cell><Data ss:Type="String">${cellValue}</Data></Cell>`;
+              }
+            }
+          });
+          xlsContent += '</Row>';
+        });
+
+        xlsContent += `
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+        return xlsContent;
+      }
+
+      // ======================================================
+      // Export Format Helper Functions
+      // ======================================================
+      function getSelectedExportFormat() {
+        const formatRadio = document.querySelector('input[name="exportFormat"]:checked');
+        return formatRadio ? formatRadio.value : 'xls'; // Default to XLS
+      }
+
+      function generateFileContent(rows, format) {
+        if (format === 'csv') {
+          return generateCSVString(rows);
+        } else {
+          return generateXLSString(rows);
+        }
+      }
+
+      function getFileMimeType(format) {
+        if (format === 'csv') {
+          return 'text/csv;charset=utf-8;';
+        } else {
+          return 'application/vnd.ms-excel;charset=utf-8;';
+        }
+      }
+
+      function updateFilename(filename, format) {
+        // Remove existing extension and add new one
+        const baseName = filename.replace(/\.(csv|xls)$/i, '');
+        return `${baseName}.${format}`;
+      }
+
+      // ======================================================
+      // Process a single category: fetch OSM data, build rows, provide download link
       // ======================================================
       async function processCategory(filename, filters) {
         log(`→ Starting category: ${filename}`);
@@ -6492,28 +6718,34 @@ out center tags;`;
           ]);
         }
 
-        // Skip creating CSV if there are no data rows (only header)
+        // Skip creating file if there are no data rows (only header)
         if (rows.length <= 1) {
           log(`   [i] No valid data for ${filename} - skipping file creation`);
           return;
         }
 
-        const csvContent = generateCSVString(rows);
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        // Get selected export format and generate appropriate content
+        const exportFormat = getSelectedExportFormat();
+        const fileContent = generateFileContent(rows, exportFormat);
+        const mimeType = getFileMimeType(exportFormat);
+        const finalFilename = updateFilename(filename, exportFormat);
+
+        const blob = new Blob([fileContent], { type: mimeType });
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = blobUrl;
-        link.download = filename;
+        link.download = finalFilename;
         link.className = "download-link";
 
         // Create the enhanced download link structure
         const rowCount = rows.length - 1; // Subtract header row
+        const formatIcon = exportFormat === 'csv' ? '📊' : '📈';
         link.innerHTML = `
           <div class="download-link-content">
-            <div class="download-link-icon">📊</div>
+            <div class="download-link-icon">${formatIcon}</div>
             <div class="download-link-info">
-              <div class="download-link-title">${filename}</div>
-              <div class="download-link-meta">${rowCount} results • ${(blob.size / 1024).toFixed(1)} KB</div>
+              <div class="download-link-title">${finalFilename}</div>
+              <div class="download-link-meta">${rowCount} results • ${(blob.size / 1024).toFixed(1)} KB • ${exportFormat.toUpperCase()}</div>
             </div>
           </div>
           <div class="download-link-action">Download</div>
@@ -6521,14 +6753,14 @@ out center tags;`;
 
         // Add click tracking to download link
         link.addEventListener('click', function() {
-          trackDownload(filename, blob.size, 'individual');
-          trackEngagement('file_download', `${filename} - ${rowCount} results`);
+          trackDownload(finalFilename, blob.size, 'individual');
+          trackEngagement('file_download', `${finalFilename} - ${rowCount} results`);
         });
 
         downloadsDiv.appendChild(link);
         updateResultsContainer();
 
-        log(`✔ Finished category: ${filename} (${rows.length - 1} rows)`);
+        log(`✔ Finished category: ${finalFilename} (${rows.length - 1} rows)`);
       }
 
       // ======================================================
@@ -7044,7 +7276,7 @@ out center tags;`;
 
       // Download all files as a single ZIP
       async function downloadAllFiles() {
-        log("=== Creating ZIP file with all CSVs ===");
+        log("=== Creating ZIP file with all exported files ===");
         const downloadsDiv = document.getElementById("downloads");
         const links = downloadsDiv.querySelectorAll("a.download-link");
 
@@ -7056,7 +7288,20 @@ out center tags;`;
         // Create new JSZip instance
         const zip = new JSZip();
 
-        // Add each CSV to the zip
+        // Count file types for logging
+        const fileTypes = {};
+        links.forEach(link => {
+          const ext = link.download.split('.').pop().toLowerCase();
+          fileTypes[ext] = (fileTypes[ext] || 0) + 1;
+        });
+
+        const typesSummary = Object.entries(fileTypes)
+          .map(([ext, count]) => `${count} ${ext.toUpperCase()}`)
+          .join(', ');
+
+        log(`Found ${links.length} files: ${typesSummary}`);
+
+        // Add each file to the zip
         for (let i = 0; i < links.length; i++) {
           const link = links[i];
           const filename = link.download;
@@ -7074,8 +7319,8 @@ out center tags;`;
         log("Generating ZIP file...");
         const zipBlob = await zip.generateAsync({type: "blob"});
 
-        // Create download link for the zip
-        const zipUrl = URL.createObjectURL(zipBlob);
+        // Create download link for the zip with proper MIME type
+        const zipUrl = URL.createObjectURL(new Blob([zipBlob], { type: 'application/zip' }));
         const zipLink = document.createElement("a");
         zipLink.href = zipUrl;
         zipLink.download = "business_data.zip";
@@ -7111,6 +7356,9 @@ out center tags;`;
         // Initialize map settings
         initializeMapSettings();
 
+        // Initialize export format settings
+        initializeExportFormatSettings();
+
         // Handle mapProvider toggle
         const osmProvider = document.getElementById("osmProvider");
         const googleProvider = document.getElementById("googleProvider");
@@ -7134,6 +7382,26 @@ out center tags;`;
 
             if (!googleApiKey) {
               trackError('Configuration Error', 'Google Maps selected without API key');
+
+        // Handle export format toggle
+        const xlsFormat = document.getElementById("xlsFormat");
+        const csvFormat = document.getElementById("csvFormat");
+
+        xlsFormat.addEventListener("change", function() {
+          if (this.checked) {
+            trackSettingsChange('Export Format', 'CSV', 'XLS');
+            localStorage.setItem("exportFormat", "xls");
+            console.log("Export format set to:", "XLS");
+          }
+        });
+
+        csvFormat.addEventListener("change", function() {
+          if (this.checked) {
+            trackSettingsChange('Export Format', 'XLS', 'CSV');
+            localStorage.setItem("exportFormat", "csv");
+            console.log("Export format set to:", "CSV");
+          }
+        });
               const statusEl = document.getElementById("googleKeyStatus");
               statusEl.textContent = "No API Key found";
               statusEl.className = "status-message danger";
