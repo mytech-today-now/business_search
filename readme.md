@@ -370,7 +370,7 @@ Below is an organized overview of main JavaScript functions, objects, and their 
   → Supplemental list of “leisure,” “shops,” “tourism,” etc.
 
 ### 2. Storage Helper Functions
-
+ 
 - `loadUserCategories()`
   - Retrieves and parses `localStorage.getItem("userCategories")`.
   - Returns `{}` if empty or on error.
