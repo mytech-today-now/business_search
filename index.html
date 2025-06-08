@@ -2326,9 +2326,9 @@
   <section class="page-header">
     <h1>🚀 FREE Business Lead Generator: Export 1000s of Local Businesses in Minutes! No API Required | myTech.Today</h1>
     <p class="page-subtitle">Generate unlimited business leads instantly! Export thousands of local businesses with contact info, addresses & phone numbers. Free tool uses OpenStreetMap - no Google API needed. Perfect for MSPs, marketers & sales teams in Chicago, Illinois.</p>
-    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as XLSX, XLS or CSV</h3>
+    <h3>Export Businesses (<span id="radiusDisplay">30</span> mi radius around <span id="zipDisplay">60010</span>) as XLSX, XLS, CSV, Google Sheets, or Apple Numbers</h3>
     <p class="page-description">
-      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate files in your preferred format (XLSX, XLS or CSV). No API key is required for basic functionality.
+      This page uses the Overpass API (<a href="https://www.openstreetmap.org/about" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>) to fetch business data. Select categories below and click "Run Export" to generate files in your preferred format (XLSX, XLS, CSV, Google Sheets, or Apple Numbers). No API key is required for basic functionality.
     </p>
 
     <div class="page-controls">
@@ -2427,6 +2427,7 @@
           <!-- Export Format Settings -->
           <div class="settings-group">
             <!-- Added .xlsx support as default: Jun 2025 -->
+            <!-- Added .gsheet and .numbers support: Jan 2025 -->
             <div id="export-format-toggle" class="settings-section footer-setting">
               <label>Download Format:</label>
               <div class="export-format-toggle">
@@ -2437,6 +2438,10 @@
                   <label for="xlsFormat">XLS</label>
                   <input type="radio" name="exportFormat" id="csvFormat" value="csv">
                   <label for="csvFormat">CSV</label>
+                  <input type="radio" name="exportFormat" id="gsheetFormat" value="gsheet">
+                  <label for="gsheetFormat">Google Sheets</label>
+                  <input type="radio" name="exportFormat" id="numbersFormat" value="numbers">
+                  <label for="numbersFormat">Apple Numbers</label>
                 </div>
               </div>
             </div>
@@ -2598,6 +2603,10 @@
           document.getElementById("csvFormat").checked = true;
         } else if (storedFormat === "xls") {
           document.getElementById("xlsFormat").checked = true;
+        } else if (storedFormat === "gsheet") {
+          document.getElementById("gsheetFormat").checked = true;
+        } else if (storedFormat === "numbers") {
+          document.getElementById("numbersFormat").checked = true;
         } else {
           document.getElementById("xlsxFormat").checked = true;
         }
@@ -2904,7 +2913,7 @@
           downloadLink.className = "download-link";
 
           // Create the enhanced download link structure
-          const formatIcon = exportFormat === 'csv' ? '📊' : (exportFormat === 'xlsx' ? '📋' : '📈');
+          const formatIcon = getFormatIcon(exportFormat);
           downloadLink.innerHTML = `
             <div class="download-link-content">
               <div class="download-link-icon">${formatIcon}</div>
@@ -6704,6 +6713,111 @@ out center tags;`;
       }
 
       // ======================================================
+      // Google Sheets Generation Functions
+      // ======================================================
+      /**
+       * Generate Google Sheets compatible file content
+       * @param {Array<Array<string>>} rows - The data rows to export
+       * @returns {Blob} Google Sheets compatible blob
+       */
+      async function generateGsheetFile(rows) {
+        try {
+          // Google Sheets format is essentially XLSX with specific MIME type
+          // We'll use the same XLSX generation but with Google Sheets MIME type
+          if (typeof XLSX === 'undefined') {
+            await loadSheetJSLibrary();
+          }
+
+          // Create a new workbook
+          const wb = XLSX.utils.book_new();
+
+          // Convert rows to worksheet
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+
+          // Add some basic styling to header row
+          if (rows.length > 0) {
+            const headerRange = XLSX.utils.decode_range(ws['!ref']);
+            for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+              const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+              if (ws[cellAddress]) {
+                ws[cellAddress].s = {
+                  font: { bold: true },
+                  fill: { fgColor: { rgb: "E6E6FA" } }
+                };
+              }
+            }
+          }
+
+          // Add worksheet to workbook
+          XLSX.utils.book_append_sheet(wb, ws, "Business Data");
+
+          // Generate XLSX file as array buffer (Google Sheets can import XLSX)
+          const arrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+          // Return the blob with Google Sheets MIME type
+          return new Blob([arrayBuffer], { type: 'application/vnd.google-apps.spreadsheet' });
+        } catch (error) {
+          console.error('Error generating Google Sheets file:', error);
+          // Fallback to CSV format for Google Sheets compatibility
+          console.warn('Google Sheets generation failed, falling back to CSV format');
+          const csvContent = generateCSVString(rows);
+          return new Blob([csvContent], { type: 'text/csv' });
+        }
+      }
+
+      // ======================================================
+      // Apple Numbers Generation Functions
+      // ======================================================
+      /**
+       * Generate Apple Numbers compatible file content
+       * @param {Array<Array<string>>} rows - The data rows to export
+       * @returns {Blob} Apple Numbers compatible blob
+       */
+      async function generateNumbersFile(rows) {
+        try {
+          // Apple Numbers can import XLSX files, so we'll use XLSX format
+          // with Numbers-specific MIME type
+          if (typeof XLSX === 'undefined') {
+            await loadSheetJSLibrary();
+          }
+
+          // Create a new workbook
+          const wb = XLSX.utils.book_new();
+
+          // Convert rows to worksheet
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+
+          // Add some basic styling to header row
+          if (rows.length > 0) {
+            const headerRange = XLSX.utils.decode_range(ws['!ref']);
+            for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+              const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+              if (ws[cellAddress]) {
+                ws[cellAddress].s = {
+                  font: { bold: true },
+                  fill: { fgColor: { rgb: "E6E6FA" } }
+                };
+              }
+            }
+          }
+
+          // Add worksheet to workbook
+          XLSX.utils.book_append_sheet(wb, ws, "Business Data");
+
+          // Generate XLSX file as array buffer (Numbers can import XLSX)
+          const arrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+          // Return the blob with Apple Numbers MIME type
+          return new Blob([arrayBuffer], { type: 'application/vnd.apple.numbers' });
+        } catch (error) {
+          console.error('Error generating Apple Numbers file:', error);
+          // Fallback to XLSX format for Numbers compatibility
+          console.warn('Apple Numbers generation failed, falling back to XLSX format');
+          return await generateXLSXBlob(rows);
+        }
+      }
+
+      // ======================================================
       // Export Format Helper Functions
       // ======================================================
       function getSelectedExportFormat() {
@@ -6722,6 +6836,22 @@ out center tags;`;
             window.log && window.log(`[!] XLSX generation failed, using XLS format instead: ${error.message}`);
             return generateXLSString(rows);
           }
+        } else if (format === 'gsheet') {
+          try {
+            return await generateGsheetFile(rows);
+          } catch (error) {
+            console.warn('Google Sheets generation failed, falling back to CSV:', error);
+            window.log && window.log(`[!] Google Sheets generation failed, using CSV format instead: ${error.message}`);
+            return generateCSVString(rows);
+          }
+        } else if (format === 'numbers') {
+          try {
+            return await generateNumbersFile(rows);
+          } catch (error) {
+            console.warn('Apple Numbers generation failed, falling back to XLSX:', error);
+            window.log && window.log(`[!] Apple Numbers generation failed, using XLSX format instead: ${error.message}`);
+            return await generateXLSXBlob(rows);
+          }
         } else {
           return generateXLSString(rows);
         }
@@ -6732,6 +6862,10 @@ out center tags;`;
           return 'text/csv;charset=utf-8;';
         } else if (format === 'xlsx') {
           return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;';
+        } else if (format === 'gsheet') {
+          return 'application/vnd.google-apps.spreadsheet;charset=utf-8;';
+        } else if (format === 'numbers') {
+          return 'application/vnd.apple.numbers;charset=utf-8;';
         } else {
           return 'application/vnd.ms-excel;charset=utf-8;';
         }
@@ -6739,8 +6873,24 @@ out center tags;`;
 
       function updateFilename(filename, format) {
         // Remove existing extension and add new one
-        const baseName = filename.replace(/\.(csv|xlsx|xls)$/i, '');
+        const baseName = filename.replace(/\.(csv|xlsx|xls|gsheet|numbers)$/i, '');
         return `${baseName}.${format}`;
+      }
+
+      /**
+       * Get the appropriate icon for each file format
+       * @param {string} format - The export format
+       * @returns {string} The emoji icon for the format
+       */
+      function getFormatIcon(format) {
+        switch (format) {
+          case 'csv': return '📊';
+          case 'xlsx': return '📋';
+          case 'xls': return '📈';
+          case 'gsheet': return '📗';
+          case 'numbers': return '🔢';
+          default: return '📄';
+        }
       }
 
       // ======================================================
@@ -6824,7 +6974,7 @@ out center tags;`;
 
         // Create the enhanced download link structure
         const rowCount = rows.length - 1; // Subtract header row
-        const formatIcon = exportFormat === 'csv' ? '📊' : (exportFormat === 'xlsx' ? '📋' : '📈');
+        const formatIcon = getFormatIcon(exportFormat);
         link.innerHTML = `
           <div class="download-link-content">
             <div class="download-link-icon">${formatIcon}</div>
@@ -7472,10 +7622,12 @@ out center tags;`;
         const xlsxFormat = document.getElementById("xlsxFormat");
         const xlsFormat = document.getElementById("xlsFormat");
         const csvFormat = document.getElementById("csvFormat");
+        const gsheetFormat = document.getElementById("gsheetFormat");
+        const numbersFormat = document.getElementById("numbersFormat");
 
         xlsxFormat.addEventListener("change", function() {
           if (this.checked) {
-            trackSettingsChange('Export Format', 'XLS/CSV', 'XLSX');
+            trackSettingsChange('Export Format', 'Other', 'XLSX');
             localStorage.setItem("exportFormat", "xlsx");
             console.log("Export format set to:", "XLSX");
           }
@@ -7483,7 +7635,7 @@ out center tags;`;
 
         xlsFormat.addEventListener("change", function() {
           if (this.checked) {
-            trackSettingsChange('Export Format', 'XLSX/CSV', 'XLS');
+            trackSettingsChange('Export Format', 'Other', 'XLS');
             localStorage.setItem("exportFormat", "xls");
             console.log("Export format set to:", "XLS");
           }
@@ -7491,9 +7643,25 @@ out center tags;`;
 
         csvFormat.addEventListener("change", function() {
           if (this.checked) {
-            trackSettingsChange('Export Format', 'XLSX/XLS', 'CSV');
+            trackSettingsChange('Export Format', 'Other', 'CSV');
             localStorage.setItem("exportFormat", "csv");
             console.log("Export format set to:", "CSV");
+          }
+        });
+
+        gsheetFormat.addEventListener("change", function() {
+          if (this.checked) {
+            trackSettingsChange('Export Format', 'Other', 'Google Sheets');
+            localStorage.setItem("exportFormat", "gsheet");
+            console.log("Export format set to:", "Google Sheets");
+          }
+        });
+
+        numbersFormat.addEventListener("change", function() {
+          if (this.checked) {
+            trackSettingsChange('Export Format', 'Other', 'Apple Numbers');
+            localStorage.setItem("exportFormat", "numbers");
+            console.log("Export format set to:", "Apple Numbers");
           }
         });
               const statusEl = document.getElementById("googleKeyStatus");
@@ -8004,7 +8172,7 @@ out center tags;`;
           <ul>
             <li><strong>No API Keys Required:</strong> Uses free OpenStreetMap data</li>
             <li><strong>Geographic Targeting:</strong> Search within specific mile radius of any US ZIP code</li>
-            <li><strong>Multiple Export Formats:</strong> Individual CSV files or bundled ZIP download</li>
+            <li><strong>Multiple Export Formats:</strong> XLSX, XLS, CSV, Google Sheets, Apple Numbers - individual files or bundled ZIP download</li>
             <li><strong>Custom Categories:</strong> Add your own business types beyond the preset list</li>
             <li><strong>Real-time Progress:</strong> Monitor export progress with detailed logging</li>
           </ul>
