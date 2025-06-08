@@ -17,7 +17,7 @@ This web application exists to solve a critical business development challenge: 
 - **Add custom categories** (key:value pairs) when needed.
 - **Fetch business data from OpenStreetMap’s Overpass API** (no API key required).
 - **Parse results into CSV files** containing fields such as name, address, phone, email, and website.
-- **Download individual CSVs** or bundle all CSVs into a single ZIP file via the JSZip library.
+- **Download individual CSVs** or bundle all XLSXs into a single ZIP file via the JSZip library.
 - Quickly assemble mailing lists of potential clients for direct marketing, outreach, or data analysis purposes.
 
 ## User Personas & Use Cases
@@ -63,75 +63,95 @@ This web application exists to solve a critical business development challenge: 
 ## Step-by-Step Usage Instructions
 
 ### Getting Started
-1. **Open the Application**: Navigate to the Business Search & Export Tool webpage
-2. **Set Your Location**:
-   - Enter your desired ZIP code in the input field (default: 60010 - Barrington, IL)
+1. **Open the Application**: Open `index.html` in any modern browser
+2. **Verify Default Settings**:
+   - Check the version displayed in the header (should show current version)
+   - Default location: ZIP code 60010 (Barrington, IL)
+   - Default search radius: 30 miles
+   - Default export format: XLSX
+
+### Configuring Your Search
+3. **Set Your Location**:
+   - Enter your desired ZIP code in the input field
    - Press Enter or click away to automatically update coordinates
    - Verify the coordinates display shows your intended location
 
-### Configuring Your Search
-3. **Set Search Radius**:
-   - Adjust the radius slider or input field (1-100 miles)
+4. **Set Search Radius**:
+   - Adjust the radius input field (1-100 miles)
    - Default is 30 miles - suitable for most regional business searches
    - Larger radius = more results but potentially less relevant
 
-4. **Select Business Categories**:
-   - **Individual Selection**: Check specific categories like "lawyers.csv" or "medical_practices.csv"
+5. **Select Business Categories**:
+   - **Individual Selection**: Check specific categories like "lawyers" or "medical_practices"
    - **Group Selection**: Use group headers (e.g., "office", "amenity") to select all categories in that group
    - **Select All**: Use the master checkbox to select/deselect all categories at once
 
 ### Adding Custom Categories
-5. **Add New Groups** (if needed):
+6. **Add New Groups** (if needed):
    - Click the "+" button next to "Select/Unselect All Categories"
    - Enter a group name (e.g., "healthcare", "professional_services")
    - This creates a new category group for organization
 
-6. **Add Custom Business Types**:
+7. **Add Custom Business Types**:
    - Click the "+" button within any group section
    - Enter the business description (e.g., "veterinary clinic", "tax preparation")
    - Click "Ask ChatGPT for OSM tags" for help finding the correct OpenStreetMap tags
    - The system will generate appropriate search parameters
 
 ### Running Your Export
-7. **Execute the Search**:
+8. **Execute the Search**:
    - Click "Run Export" button
    - Monitor the log area for real-time progress updates
    - Wait for all selected categories to complete processing
    - Each category processes sequentially to avoid overwhelming the API
 
-8. **Review Results**:
+9. **Review Results**:
    - Check the log for number of businesses found per category
    - Note any categories that returned zero results
    - Verify the coordinate updates were successful
 
 ### Downloading Your Data
-9. **Download Individual CSV Files**:
-   - Click individual download links for specific business categories
-   - Each CSV contains: Name, Address, Phone, Email, Website, Contact Info
-   - Files are named descriptively (e.g., "lawyers.csv", "medical_practices.csv")
+10. **Download Individual Files**:
+    - Click individual download links for specific business categories
+    - Files are available in your selected format (XLSX, XLS, CSV, Google Sheets, or Apple Numbers)
+    - Files are named descriptively (e.g., "lawyers.xlsx", "medical_practices.xlsx")
 
-10. **Download Complete Dataset**:
-    - Click "Download All as ZIP" for a bundled file containing all CSVs
-    - The ZIP file is named "business_data.zip"
+11. **Download Complete Dataset**:
+    - Click "Download all [#] files as a zip file" for a bundled download
+    - The ZIP file contains all exported files in your selected format
     - This option only becomes available after running an export
 
-### Working with Your CSV Data
-11. **Import into CRM Systems**:
-    - Open CSV files in Excel, Google Sheets, or your preferred spreadsheet application
-    - Map columns to your CRM fields (Name → Company Name, etc.)
-    - Import using your CRM's CSV import functionality
+### Modifying Settings
+12. **Change Export Format**:
+    - Use the format toggle switches in the footer settings
+    - Choose from: XLSX (default), XLS, CSV, Google Sheets, or Apple Numbers
+    - Settings are automatically saved to your browser
 
-12. **Prepare for Marketing Campaigns**:
-    - Clean and deduplicate data as needed
-    - Segment by business type, location, or other criteria
-    - Add custom fields for campaign tracking
-    - Export to your email marketing or sales automation platform
+13. **Configure API Settings**:
+    - Use the Settings panel in the footer to modify API keys
+    - Switch between OpenStreetMap (free) and Google Maps (requires API key)
+    - API keys are stored locally in your browser
 
-13. **Data Quality Best Practices**:
-    - Verify phone numbers and email addresses before outreach
-    - Cross-reference with business websites for accuracy
-    - Update your local database with any corrections
-    - Re-run exports periodically to capture new businesses
+### Version Management
+14. **To bump the version**:
+    - Open your browser's developer tools:
+      - **Windows/Linux**: Press `F12`, `Ctrl+Shift+I`, or right-click → **Inspect**
+      - **macOS**: Press `Cmd+Option+I` or right-click → **Inspect Element**
+    - Select the **Console** tab
+    - Type and run the following command:
+      ```js
+      localStorage.setItem("appVersion", "X.Y.Z");
+      ```
+      replacing `"X.Y.Z"` with your desired semantic version number (e.g., `"1.1.0"`)
+    - Press **Enter** to save the new version
+    - Reload the page (press `F5` or run `location.reload()` in the console)
+    - The new version will appear in the header and trigger upgrade notifications
+
+15. **Troubleshooting**:
+    - Consult the browser console (F12 → Console tab) for error messages
+    - Check network connectivity for API access
+    - Verify ZIP code format (5 digits) for coordinate lookup
+    - Clear browser cache if experiencing persistent issues
 
 ---
 
@@ -143,7 +163,7 @@ This web application exists to solve a critical business development challenge: 
 
 2. **Category Selection**  
    - A list of checkboxes is generated from a JavaScript object called `CATEGORIES` (preset categories) and `ADDITIONAL_CATEGORIES`.  
-   - Each category consists of a filename (e.g., `lawyers.csv`) and one or more filter objects (e.g., `{ key: "office", value: "lawyer" }`).  
+   - Each category consists of a filename (e.g., `lawyers.xlsx`) and one or more filter objects (e.g., `{ key: "office", value: "lawyer" }`).  
    - Users can select or unselect entire “key groups” (e.g., all `office` categories) or individual categories.  
    - A “Select/Unselect All” toggle checkbox is provided at the top of the category list.
 
@@ -151,8 +171,7 @@ This web application exists to solve a critical business development challenge: 
    - An “Add Custom Category” form allows the user to specify:
      - `Key` (e.g., `amenity`, `shop`, `office`)
      - `Value` (e.g., `cafe`, `bakery`)
-     - `Filename` (e.g., `cafes.csv`)  
-   - On submission, the page validates that all fields are present and that the filename ends with `.csv`.  
+   - On submission, the page validates that all fields are present and that the filename ends with `.xlsx`.  
    - If valid, the custom category is stored in `localStorage` under `userCategories` so that it persists across sessions.  
    - The category list is immediately re-rendered to include the new entry.
 
@@ -842,6 +861,7 @@ This project follows [Semantic Versioning](https://semver.org/) principles and i
 ### Development Phases
 
 #### **Beta Development** (`v0.x`)
+
 All commits and iterations prior to v1.0 are considered **Beta Development**:
 
 - **v0.1-v0.5**: Initial prototyping and core functionality development
@@ -857,15 +877,31 @@ All commits and iterations prior to v1.0 are considered **Beta Development**:
   - Responsive design improvements
   - Documentation and user experience enhancements
 
+**Beta Development Workflow:**
+1. Open `index.html` in any modern browser
+2. Test core functionality with default settings
+3. Report issues via GitHub Issues for rapid iteration
+4. Expect frequent updates and potential breaking changes
+5. Use for testing and feedback purposes only
+
 #### **Production Development** (`v1.0+`)
+
 Starting with v1.0, the application is considered **Production Ready**:
 
-- **v1.0**: Production release with comprehensive feature set
+- **v1.0.0**: Production release with comprehensive feature set
   - Stable API integrations
   - Full export format support
   - Robust error handling
   - Complete documentation
   - Version management system
+
+**Production Development Workflow:**
+1. Open `index.html` in any modern browser
+2. Verify the default version displayed in the header
+3. Use the Export controls to download data
+4. Modify settings or API keys via the Settings panel
+5. Follow semantic versioning for updates
+6. Suitable for business-critical lead generation
 
 ### How to Upgrade
 
