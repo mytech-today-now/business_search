@@ -1,6 +1,6 @@
 # Business Search & Export Tool
 
-A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today" target="_blank">myTech.Today</a>, a leading Managed Service Provider (MSP) in Barrington, IL.
+A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today" target="_blank">myTech.Today</a>, a leading Managed Service Provider (MSP) in Barrington, IL. 
 
 **This project has graduated from Beta (`v0.x`) to Production (`v1.0`). Future updates will follow [Semantic Versioning](https://semver.org/).**
 
