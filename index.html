@@ -281,6 +281,91 @@
       line-height: 1.3;
     }
 
+    /* Version Badge Styles */
+    .version-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--border-radius);
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-left: var(--spacing-sm);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .version-badge:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* Version Upgrade Notification Banner */
+    .version-upgrade-banner {
+      background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+      border: 1px solid #c3e6cb;
+      border-radius: var(--border-radius);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-light);
+      display: none; /* Hidden by default */
+      position: relative;
+    }
+
+    .version-upgrade-banner.show {
+      display: block;
+    }
+
+    .version-upgrade-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .version-upgrade-message {
+      color: var(--success-color);
+      font-weight: 500;
+      margin: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .version-upgrade-link {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .version-upgrade-link:hover {
+      color: #003a6b;
+      text-decoration: underline;
+    }
+
+    .version-upgrade-dismiss {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: var(--spacing-xs);
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      line-height: 1;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .version-upgrade-dismiss:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: var(--text-color);
+    }
+
     .header-contact {
       justify-self: end;
       text-align: right;
@@ -2420,6 +2505,8 @@
     <div id="testContent"></div>
   </div>
 
+  <!-- Branded Header -->
+  <!-- Version Display: controlled by initializeVersion() in main.js -->
   <header class="branded-header">
     <div class="header-container">
       <nav class="header-nav">
@@ -2429,7 +2516,10 @@
 
       <div class="header-brand">
         <div class="brand-icon">🏢</div>
-        <h1 class="brand-logo"><a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a></h1>
+        <h1 class="brand-logo">
+          <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a>
+          <span id="version-badge" class="version-badge" aria-label="Application Version 1.0">v1.0</span>
+        </h1>
         <p class="brand-tagline">Professional MSP Services • Barrington, IL • (847) 767-4914</p>
       </div>
 
@@ -2438,6 +2528,16 @@
       </div>
     </div>
   </header>
+
+  <!-- Version Upgrade Notification Banner -->
+  <div id="version-upgrade-banner" class="version-upgrade-banner">
+    <div class="version-upgrade-content">
+      <p class="version-upgrade-message">
+        🎉 Updated to v1.0 – <a href="#versioning-section" class="version-upgrade-link">Check out what's new!</a>
+      </p>
+      <button type="button" id="dismiss-version-banner" class="version-upgrade-dismiss" aria-label="Dismiss notification">&times;</button>
+    </div>
+  </div>
 
   <!-- Page Header Section -->
   <section class="page-header">
@@ -2648,6 +2748,93 @@
     let googleApiKey = null;
 
     (function () {
+
+      // ======================================================
+      // Version Management System
+      // ======================================================
+      /**
+       * Initialize version management system
+       * Checks localStorage for current version, handles upgrades, and shows notifications
+       */
+      window.initializeVersion = function initializeVersion() {
+        const CURRENT_VERSION = '1.0';
+        const VERSION_KEY = 'appVersion';
+        const BANNER_DISMISSED_KEY = 'versionBannerDismissed';
+
+        try {
+          // Get stored version from localStorage
+          const storedVersion = localStorage.getItem(VERSION_KEY);
+
+          console.log(`Version check: stored=${storedVersion}, current=${CURRENT_VERSION}`);
+
+          // If no version exists, this is a first-time user
+          if (!storedVersion) {
+            localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+            console.log(`First-time user: set version to ${CURRENT_VERSION}`);
+            return;
+          }
+
+          // If stored version differs from current version, handle upgrade
+          if (storedVersion !== CURRENT_VERSION) {
+            console.log(`Version upgrade detected: ${storedVersion} → ${CURRENT_VERSION}`);
+
+            // Update stored version
+            localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+
+            // Clear banner dismissal to show upgrade notification
+            localStorage.removeItem(BANNER_DISMISSED_KEY);
+
+            // Show upgrade notification banner
+            showVersionUpgradeBanner();
+
+            // Track version upgrade event
+            if (typeof trackEvent === 'function') {
+              trackEvent('version_upgrade', 'Version Management', `${storedVersion} to ${CURRENT_VERSION}`);
+            }
+          } else {
+            // Same version - check if banner should be shown
+            const bannerDismissed = localStorage.getItem(BANNER_DISMISSED_KEY);
+            if (!bannerDismissed) {
+              // Show banner for current version (in case user hasn't seen it yet)
+              showVersionUpgradeBanner();
+            }
+          }
+
+        } catch (error) {
+          console.error('Error in version initialization:', error);
+          // Fallback: set current version
+          localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+        }
+      }
+
+      /**
+       * Show the version upgrade notification banner
+       */
+      function showVersionUpgradeBanner() {
+        const banner = document.getElementById('version-upgrade-banner');
+        if (banner) {
+          banner.classList.add('show');
+          console.log('Version upgrade banner displayed');
+        }
+      }
+
+      /**
+       * Hide the version upgrade notification banner
+       */
+      function hideVersionUpgradeBanner() {
+        const banner = document.getElementById('version-upgrade-banner');
+        if (banner) {
+          banner.classList.remove('show');
+          // Remember that user dismissed the banner
+          localStorage.setItem('versionBannerDismissed', 'true');
+          console.log('Version upgrade banner dismissed');
+
+          // Track banner dismissal
+          if (typeof trackEvent === 'function') {
+            trackEvent('banner_dismissed', 'Version Management', 'v1.0 upgrade notification');
+          }
+        }
+      }
 
       // ======================================================
       // User Categories Storage Helpers
@@ -7723,11 +7910,22 @@ out center tags;`;
           el.textContent = RADIUS;
         });
 
+        // Initialize version management system
+        initializeVersion();
+
         // Initialize map settings
         initializeMapSettings();
 
         // Initialize export format settings
         initializeExportFormatSettings();
+
+        // Set up version banner dismiss functionality
+        const dismissVersionBannerBtn = document.getElementById('dismiss-version-banner');
+        if (dismissVersionBannerBtn) {
+          dismissVersionBannerBtn.addEventListener('click', function() {
+            hideVersionUpgradeBanner();
+          });
+        }
 
         // Handle mapProvider toggle
         const osmProvider = document.getElementById("osmProvider");

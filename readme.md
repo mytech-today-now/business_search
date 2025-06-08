@@ -2,6 +2,8 @@
 
 A powerful web-based application for generating targeted business mailing lists within specified geographic areas, developed by <a href="https://mytech.today" target="_blank">myTech.Today</a>, a leading Managed Service Provider (MSP) in Barrington, IL.
 
+**This project has graduated from Beta (`v0.x`) to Production (`v1.0`). Future updates will follow [Semantic Versioning](https://semver.org/).**
+
 ---
 
 ## Purpose & Description
@@ -823,6 +825,65 @@ For business inquiries, custom development, or professional support:
 - **Contributors**: Thank you to all who have contributed code, documentation, and feedback
 - **Users**: Your feedback and feature requests drive continuous improvement
 - **Open Source Community**: For the tools and libraries that make this project possible
+
+---
+
+## Versioning and Release Notes {#versioning-section}
+
+### Version Management System
+
+This project follows [Semantic Versioning](https://semver.org/) principles and includes a robust version management system that:
+
+- **Tracks Application Version**: Automatically detects version changes and manages localStorage updates
+- **User Notifications**: Shows upgrade notifications when new versions are deployed
+- **Version Badge**: Displays current version (v1.0) in the application header
+- **Persistent Storage**: Remembers user preferences and dismissal states across sessions
+
+### Development Phases
+
+#### **Beta Development** (`v0.x`)
+All commits and iterations prior to v1.0 are considered **Beta Development**:
+
+- **v0.1-v0.5**: Initial prototyping and core functionality development
+  - Basic OpenStreetMap integration
+  - CSV export functionality
+  - Category selection system
+  - Initial UI/UX design
+
+- **v0.6-v0.9**: Feature enhancement and refinement
+  - Google Maps API integration
+  - Advanced export formats (XLSX, XLS, Google Sheets, Apple Numbers)
+  - Custom category management
+  - Responsive design improvements
+  - Documentation and user experience enhancements
+
+#### **Production Development** (`v1.0+`)
+Starting with v1.0, the application is considered **Production Ready**:
+
+- **v1.0**: Production release with comprehensive feature set
+  - Stable API integrations
+  - Full export format support
+  - Robust error handling
+  - Complete documentation
+  - Version management system
+
+### How to Upgrade
+
+When new versions are released, the application will automatically:
+
+1. **Detect Version Changes**: Compare stored version with current application version
+2. **Update localStorage**: Automatically update the stored version number
+3. **Show Notifications**: Display upgrade banner with "What's New" information
+4. **Preserve Settings**: Maintain all user preferences and custom categories
+5. **Track Analytics**: Log version upgrade events for usage analytics
+
+#### Manual Version Check
+Users can manually check their current version by looking at the version badge in the application header (top-right of the myTech.Today logo).
+
+#### Future Versioning
+- **Patch Releases** (v1.0.1, v1.0.2): Bug fixes and minor improvements
+- **Minor Releases** (v1.1.0, v1.2.0): New features and enhancements
+- **Major Releases** (v2.0.0, v3.0.0): Breaking changes or significant architectural updates
 
 ---
 
