@@ -1250,6 +1250,55 @@
       gap: var(--spacing-md);
     }
 
+    /* Enhanced Settings Layout Styles */
+    .settings-top-row {
+      /* Top row with Map Provider and Download Format */
+      align-items: flex-start;
+    }
+
+    .settings-bottom-row {
+      /* Bottom row with Google API Key aligned to Map Provider column */
+      align-items: flex-start;
+      margin-top: var(--spacing-sm);
+    }
+
+    .settings-map-provider {
+      /* Map Provider section styling */
+      flex: 1;
+    }
+
+    .settings-export-format {
+      /* Download Format section styling */
+      flex: 1;
+    }
+
+    .settings-spacer {
+      /* Empty space for alignment in bottom row (right side) */
+      flex: 1;
+      min-height: 1px; /* Ensure it takes space */
+    }
+
+    .settings-api-key {
+      /* Google API Key section styling (left column) */
+      flex: 1;
+    }
+
+    .api-key-input-group {
+      /* Container for API key input and visibility toggle */
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .api-key-buttons {
+      /* Container for Save and Remove buttons */
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
     .divider-vertical {
       width: 1px;
       height: 40px;
@@ -1404,6 +1453,33 @@
       .divider-vertical {
         display: none;
       }
+
+      /* Mobile responsive adjustments for settings layout */
+      .settings-top-row,
+      .settings-bottom-row {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .settings-spacer {
+        display: none; /* Hide spacer on mobile */
+      }
+
+      .api-key-input-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+      }
+
+      .api-key-buttons {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        width: 100%;
+      }
+
+      .api-key-buttons button {
+        width: 100%;
+      }
     }
 
     @media screen and (min-width: 600px) {
@@ -1415,6 +1491,33 @@
 
       .footer-settings-container {
         gap: var(--spacing-lg);
+      }
+
+      /* Desktop layout for settings structure */
+      .settings-top-row,
+      .settings-bottom-row {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .settings-bottom-row {
+        margin-top: var(--spacing-md);
+      }
+
+      .api-key-input-group {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+
+      .api-key-buttons {
+        flex-direction: row;
+        gap: var(--spacing-sm);
+      }
+
+      #googleApiKeyInput {
+        width: 200px;
       }
     }
 
@@ -2193,6 +2296,19 @@
         grid-template-columns: repeat(2, 1fr);
         text-align: left;
       }
+
+      /* Enhanced footer settings for new layout */
+      .footer-settings .settings-top-row .settings-section {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
+
+      .footer-settings .settings-bottom-row .settings-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
     }
 
     @media screen and (min-width: 768px) {
@@ -2399,9 +2515,10 @@
       <h3>⚙️ Settings</h3>
 
       <div class="footer-settings-container">
-        <div class="settings-row">
+        <!-- Top Row: Map Provider and Download Format aligned horizontally -->
+        <div class="settings-row settings-top-row">
           <!-- Map Provider Settings -->
-          <div class="settings-group">
+          <div class="settings-group settings-map-provider">
             <div id="mapProviderContainer" class="settings-section">
               <label>Map Provider:</label>
               <div class="map-provider-toggle">
@@ -2411,21 +2528,12 @@
                 <label for="googleProvider">Google Maps</label>
               </div>
             </div>
-
-            <div id="googleKeyContainer" class="settings-section">
-              <label for="googleApiKeyInput">Google API Key:</label>
-              <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
-              <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
-              <button type="button" id="saveGoogleKeyBtn">Save Key</button>
-              <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
-              <span id="googleKeyStatus" class="status-message"></span>
-            </div>
           </div>
 
           <div class="divider-vertical"></div>
 
           <!-- Export Format Settings -->
-          <div class="settings-group">
+          <div class="settings-group settings-export-format">
             <!-- Added .xlsx support as default: Jun 2025 -->
             <!-- Added .gsheet and .numbers support: Jan 2025 -->
             <div id="export-format-toggle" class="settings-section footer-setting">
@@ -2445,6 +2553,32 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Google API Key section aligned with Map Provider -->
+        <div class="settings-row settings-bottom-row">
+          <!-- Google API Key Settings aligned with Map Provider column -->
+          <div class="settings-group settings-api-key">
+            <div id="googleKeyContainer" class="settings-section">
+              <label for="googleApiKeyInput">Google API Key:</label>
+              <div class="api-key-input-group">
+                <input type="password" id="googleApiKeyInput" placeholder="Enter API key" maxlength="50">
+                <button type="button" id="toggleGoogleKeyVisibility" title="Show/Hide Key">👁️</button>
+                <span id="googleKeyStatus" class="status-message"></span>
+              </div>
+              <div class="api-key-buttons">
+                <button type="button" id="saveGoogleKeyBtn">Save Key</button>
+                <button type="button" id="removeGoogleKeyBtn" disabled>Remove Key</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider-vertical"></div>
+
+          <!-- Empty space to align with Download Format column -->
+          <div class="settings-group settings-spacer">
+            <!-- This space intentionally left empty for alignment -->
           </div>
         </div>
       </div>
