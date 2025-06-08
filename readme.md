@@ -201,7 +201,7 @@ This web application exists to solve a critical business development challenge: 
    - For each returned element, the script extracts standard address or contact tags (e.g., `name`, `addr:housenumber`, `addr:street`, `addr:city`, `contact:phone`, `contact:email`, etc.) via the helper function `parseOsmTags()`.  
    - If an element lacks either a `name` or any address details, it is skipped.
 
-6. **CSV Generation**  
+6. **CSV Generation**   
    - A header row is defined as:
      ```
      Name,Street Number,Street Name,City,State,ZIP+4,Phone Number,Fax Number,Email Address,Website,Contact Name(s)
