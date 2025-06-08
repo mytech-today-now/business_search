@@ -2452,7 +2452,55 @@
   <!-- Add marked.js library for markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked@2.1.3/marked.min.js"></script>
 </head>
-<body> 
+<body>
+  <!-- localStorage Error Handling -->
+  <script>
+    // Enhanced localStorage availability check with user-friendly error handling
+    (function() {
+      try {
+        const testKey = '__storage_test__';
+        localStorage.setItem(testKey, testKey);
+        localStorage.removeItem(testKey);
+      } catch (e) {
+        // localStorage is unavailable - show error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error localStorage-error';
+        errorMessage.style.cssText = `
+          background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+          border: 1px solid #f44336;
+          border-radius: 4px;
+          padding: 1rem;
+          margin: 1rem;
+          color: #c62828;
+          font-weight: 500;
+          box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+          position: relative;
+          z-index: 1000;
+        `;
+        errorMessage.innerHTML = `
+          <strong>⚠️ Storage Error:</strong> localStorage is unavailable.
+          This may be due to private browsing mode or browser restrictions.
+          <br><br>
+          <strong>To fix this:</strong>
+          <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+            <li>Disable private/incognito browsing mode</li>
+            <li>Enable cookies and site data in your browser settings</li>
+            <li>Try a different browser (Chrome, Firefox, Safari, Edge)</li>
+          </ul>
+          Some features may not work properly without storage access.
+        `;
+        document.body.insertAdjacentElement('afterbegin', errorMessage);
+
+        // Track the error for analytics
+        if (typeof trackError === 'function') {
+          trackError('localStorage_unavailable', e.message, 'Application Initialization');
+        }
+
+        console.error('localStorage unavailable:', e);
+      }
+    })();
+  </script>
+
   <!-- STORY OF PAGE POPUP -->
   <div id="pageStoryOverlay" class="hidden-overlay">
     <div id="pageStoryDialog" class="story-dialog" tabindex="-1">
@@ -2518,7 +2566,7 @@
         <div class="brand-icon">🏢</div>
         <h1 class="brand-logo">
           <a href="https://mytech.today" target="_blank" rel="noopener noreferrer">myTech.Today</a>
-          <span id="version-badge" class="version-badge" aria-label="Application Version">v1.0.0</span>
+          <span id="version-badge" class="version-badge" aria-label="Application Version">v1.0.1</span>
         </h1>
         <p class="brand-tagline">Professional MSP Services • Barrington, IL • (847) 767-4914</p>
       </div>
@@ -2533,7 +2581,7 @@
   <div id="version-upgrade-banner" class="version-upgrade-banner">
     <div class="version-upgrade-content">
       <p class="version-upgrade-message">
-        🎉 Updated to v1.0.0 – <a href="#versioning-section" class="version-upgrade-link">Check out what's new!</a>
+        🎉 Updated to v1.0.1 – <a href="#versioning-section" class="version-upgrade-link">Check out what's new!</a>
       </p>
       <button type="button" id="dismiss-version-banner" class="version-upgrade-dismiss" aria-label="Dismiss notification">&times;</button>
     </div>
@@ -2551,17 +2599,17 @@
     <div class="page-controls">
       <div class="control-group">
         <label for="radiusMiles">Search radius:</label>
-        <input type="number" id="radiusMiles" value="30" min="1" max="100" title="Search radius in miles"> mi
-        (<span id="radiusMeters">48280</span>m)
+        <input type="number" id="radiusMiles" value="30" min="1" max="100" title="Search radius in miles" aria-describedby="radiusMeters"> mi
+        (<span id="radiusMeters" aria-label="Radius in meters">48280</span>m)
       </div>
 
       <div class="control-group">
         <label for="zipCode">around ZIP:</label>
-        <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates">
+        <input type="text" id="zipCode" value="60010" pattern="[0-9]{5}" maxlength="5" title="Enter a 5-digit ZIP code and press Enter or click away to update coordinates" aria-describedby="coordsDisplay">
       </div>
 
       <div class="coords-info">
-        Current coordinates: <span id="coordsDisplay">42.1543, -88.1362</span>
+        Current coordinates: <span id="coordsDisplay" aria-label="Current latitude and longitude coordinates">42.1543, -88.1362</span>
       </div>
 
       <div class="action-links">
@@ -2584,29 +2632,30 @@
   </div>
 
   <div class="actions">
-    <button id="runBtn">Run Export</button>
-    <button id="exportConfigBtn">Export Config</button>
-    <button id="importConfigBtn">Import Config</button>
+    <button id="runBtn" aria-describedby="log">Run Export</button>
+    <button id="exportConfigBtn" aria-label="Export current configuration as JSON file">Export Config</button>
+    <button id="importConfigBtn" aria-label="Import configuration from JSON file">Import Config</button>
     <input
       type="file"
       id="importConfigInput"
       accept=".json"
       style="display: none;"
+      aria-label="Select configuration file to import"
     />
   </div>
 
   <div id="log"></div>
 
   <!-- Results Container -->
-  <div id="resultsContainer" class="results-container">
+  <div id="resultsContainer" class="results-container" role="region" aria-labelledby="resultsHeader">
     <div class="results-header">
-      <h3>📥 Export Results</h3>
+      <h3 id="resultsHeader">📥 Export Results</h3>
       <div class="results-actions">
-        <button type="button" id="downloadAllFilesBtn" class="download-all-files-btn" disabled>Download all 0 files as a zip file</button>
-        <button type="button" id="clearResultsBtn" class="clear-results-btn">Clear All</button>
+        <button type="button" id="downloadAllFilesBtn" class="download-all-files-btn" disabled aria-label="Download all exported files as a zip archive">Download all 0 files as a zip file</button>
+        <button type="button" id="clearResultsBtn" class="clear-results-btn" aria-label="Clear all export results">Clear All</button>
       </div>
     </div>
-    <div id="downloads" class="downloads-grid"></div>
+    <div id="downloads" class="downloads-grid" role="list" aria-label="Individual file downloads"></div>
   </div>
   </main>
 
@@ -2758,7 +2807,7 @@
        * Includes enhanced error handling for localStorage failures
        */
       window.initializeVersion = function initializeVersion() {
-        const CURRENT_VERSION = '1.0.0';
+        const CURRENT_VERSION = '1.0.1';
         const VERSION_KEY = 'appVersion';
         const BANNER_DISMISSED_KEY = 'versionBannerDismissed';
 
@@ -2877,7 +2926,7 @@
 
           // Track banner dismissal
           if (typeof trackEvent === 'function') {
-            trackEvent('banner_dismissed', 'Version Management', 'v1.0.0 upgrade notification');
+            trackEvent('banner_dismissed', 'Version Management', 'v1.0.1 upgrade notification');
           }
         }
       }
@@ -6519,48 +6568,49 @@
       // Additional Categories
       // ======================================================
       const CATEGORIES = {
-        "liquor_distributors.csv":     [{ key: "shop",     value: "alcohol" }],
-        "manufacturers.csv":           [{ key: "industrial", value: "manufacturer" }],
-        "hair_salons.csv":             [{ key: "shop",     value: "hairdresser" }],
-        "nail_shops.csv":              [{ key: "shop",     value: "beauty" }],
-        "auto_body_shops.csv":         [{ key: "shop",     value: "car_repair" }], // same as auto_mechanic
-        "montessori_schools.csv":      [{ key: "amenity",  value: "school" }, { key: "school:level", value: "pre_school" }],
-        "wealth_management.csv":       [{ key: "office",   value: "financial" }],
-        "venture_capital.csv":         [{ key: "office",   value: "financial" }],
-        "stock_brokers.csv":           [{ key: "office",   value: "financial" }],
-        "medical_practices.csv":       [{ key: "amenity",  value: "clinic" }],
-        "hospitals.csv":               [{ key: "amenity",  value: "hospital" }],
-        "dental_practices.csv":        [{ key: "amenity",  value: "dentist" }],
-        "veterinary_clinics.csv":      [{ key: "amenity",  value: "veterinary" }],
-        "nursing_homes.csv":           [{ key: "amenity",  value: "nursing_home" }],
-        "assisted_living.csv":         [{ key: "amenity",  value: "social_facility" }],
-        "pharmaceutical_companies.csv": [{ key: "shop",    value: "pharmacy" }],
+        "residential_buildings.csv":   [{ key: "building",    value: "residential" }],
+        "liquor_distributors.csv":     [{ key: "shop",        value: "alcohol" }],
+        "manufacturers.csv":           [{ key: "industrial",  value: "manufacturer" }],
+        "hair_salons.csv":             [{ key: "shop",        value: "hairdresser" }],
+        "nail_shops.csv":              [{ key: "shop",        value: "beauty" }],
+        "auto_body_shops.csv":         [{ key: "shop",        value: "car_repair" }], // same as auto_mechanic
+        "montessori_schools.csv":      [{ key: "amenity",     value: "school" }, { key: "school:level", value: "pre_school" }],
+        "wealth_management.csv":       [{ key: "office",      value: "financial" }],
+        "venture_capital.csv":         [{ key: "office",      value: "financial" }],
+        "stock_brokers.csv":           [{ key: "office",      value: "financial" }],
+        "medical_practices.csv":       [{ key: "amenity",     value: "clinic" }],
+        "hospitals.csv":               [{ key: "amenity",     value: "hospital" }],
+        "dental_practices.csv":        [{ key: "amenity",     value: "dentist" }],
+        "veterinary_clinics.csv":      [{ key: "amenity",     value: "veterinary" }],
+        "nursing_homes.csv":           [{ key: "amenity",     value: "nursing_home" }],
+        "assisted_living.csv":         [{ key: "amenity",     value: "social_facility" }],
+        "pharmaceutical_companies.csv": [{ key: "shop",       value: "pharmacy" }],
         "manufacturing_industrial.csv": [{ key: "industrial", value: "manufacturer" }],
-        "auto_dealerships.csv":        [{ key: "shop",     value: "car" }],
-        "banks_financial.csv":         [{ key: "amenity",  value: "bank" }],
-        "accounting_firms.csv":        [{ key: "office",   value: "accountant" }],
-        "insurance_agencies.csv":      [{ key: "office",   value: "insurance" }],
-        "real_estate_agencies.csv":    [{ key: "office",   value: "real_estate" }],
-        "educational_institutions.csv": [{ key: "amenity", value: "school" }],
-        "daycare_centers.csv":         [{ key: "amenity",  value: "childcare" }],
-        "nonprofits.csv":              [{ key: "office",   value: "non_profit_organization" }],
-        "government_agencies.csv":     [{ key: "office",   value: "government" }],
+        "auto_dealerships.csv":        [{ key: "shop",        value: "car" }],
+        "banks_financial.csv":         [{ key: "amenity",     value: "bank" }],
+        "accounting_firms.csv":        [{ key: "office",      value: "accountant" }],
+        "insurance_agencies.csv":      [{ key: "office",      value: "insurance" }],
+        "real_estate_agencies.csv":    [{ key: "office",      value: "real_estate" }],
+        "educational_institutions.csv": [{ key: "amenity",    value: "school" }],
+        "daycare_centers.csv":         [{ key: "amenity",     value: "childcare" }],
+        "nonprofits.csv":              [{ key: "office",      value: "non_profit_organization" }],
+        "government_agencies.csv":     [{ key: "office",      value: "government" }],
         "retail_stores.csv":           [{ key: "shop" }], // generic shop filter
-        "restaurants.csv":             [{ key: "amenity",  value: "restaurant" }],
-        "hotels_motels.csv":           [{ key: "tourism",  value: "hotel" }],
-        "logistics_transport.csv":     [{ key: "office",   value: "logistics" }],
-        "engineering_firms.csv":       [{ key: "office",   value: "engineering" }],
-        "architecture_design.csv":     [{ key: "office",   value: "architect" }],
-        "consulting_firms.csv":        [{ key: "office",   value: "consulting" }],
-        "marketing_agencies.csv":      [{ key: "office",   value: "marketing" }],
-        "media_production.csv":        [{ key: "office",   value: "media" }],
-        "telecom_voip.csv":            [{ key: "office",   value: "telecom" }],
-        "energy_utility.csv":          [{ key: "office",   value: "utility" }],
-        "gyms_fitness.csv":            [{ key: "leisure",  value: "fitness_centre" }],
-        "salons_spas.csv":             [{ key: "shop",     value: "beauty" }],
-        "agriculture_farming.csv":     [{ key: "landuse",  value: "farmland" }],
+        "restaurants.csv":             [{ key: "amenity",     value: "restaurant" }],
+        "hotels_motels.csv":           [{ key: "tourism",     value: "hotel" }],
+        "logistics_transport.csv":     [{ key: "office",      value: "logistics" }],
+        "engineering_firms.csv":       [{ key: "office",      value: "engineering" }],
+        "architecture_design.csv":     [{ key: "office",      value: "architect" }],
+        "consulting_firms.csv":        [{ key: "office",      value: "consulting" }],
+        "marketing_agencies.csv":      [{ key: "office",      value: "marketing" }],
+        "media_production.csv":        [{ key: "office",      value: "media" }],
+        "telecom_voip.csv":            [{ key: "office",      value: "telecom" }],
+        "energy_utility.csv":          [{ key: "office",      value: "utility" }],
+        "gyms_fitness.csv":            [{ key: "leisure",     value: "fitness_centre" }],
+        "salons_spas.csv":             [{ key: "shop",        value: "beauty" }],
+        "agriculture_farming.csv":     [{ key: "landuse",     value: "farmland" }],
         "aerospace_aviation.csv":      [{ key: "aeroway" }],
-        "coworking_spaces.csv":        [{ key: "office",   value: "coworking" }],
+        "coworking_spaces.csv":        [{ key: "office",      value: "coworking" }],
       };
     const ADDITIONAL_CATEGORIES = {
         "breweries.csv":          [{ key: "craft",   value: "brewery" }],
