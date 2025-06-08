@@ -3477,6 +3477,9 @@
       // ======================================================
       // Configuration
       // ======================================================
+      // Default ZIP code constant
+      const DEFAULT_ZIP = "60010";
+
       // Default coordinates for ZIP 60010 (Barrington, IL) - make global
       window.LAT = 42.1543;
       window.LNG = -88.1362;
@@ -3486,6 +3489,71 @@
       const MILES_TO_METERS = 1609.34;
       let RADIUS_MILES = 30;
       window.RADIUS = Math.round(RADIUS_MILES * MILES_TO_METERS);
+
+      // ======================================================
+      // ZIP Code Persistence Functions
+      // ======================================================
+
+      /**
+       * Save ZIP code to localStorage with error handling
+       * @param {string} zipCode - The ZIP code to save
+       */
+      function saveZipCode(zipCode) {
+        try {
+          localStorage.setItem("zip", zipCode);
+          console.log(`ZIP code saved to localStorage: ${zipCode}`);
+        } catch (error) {
+          console.warn("Failed to save ZIP code to localStorage:", error);
+          trackError('localStorage Error', 'Failed to save ZIP code', error.message);
+        }
+      }
+
+      /**
+       * Load ZIP code from localStorage with error handling
+       * @returns {string} The saved ZIP code or DEFAULT_ZIP if not found/error
+       */
+      function loadZipCode() {
+        try {
+          const savedZip = localStorage.getItem("zip");
+          if (savedZip && /^\d{5}$/.test(savedZip)) {
+            console.log(`ZIP code loaded from localStorage: ${savedZip}`);
+            return savedZip;
+          }
+        } catch (error) {
+          console.warn("Failed to load ZIP code from localStorage:", error);
+          trackError('localStorage Error', 'Failed to load ZIP code', error.message);
+        }
+
+        console.log(`Using default ZIP code: ${DEFAULT_ZIP}`);
+        return DEFAULT_ZIP;
+      }
+
+      /**
+       * Initialize ZIP code from localStorage and update UI
+       */
+      function initializeZipCode() {
+        const savedZip = loadZipCode();
+        const zipCodeInput = document.getElementById("zipCode");
+
+        if (savedZip !== DEFAULT_ZIP) {
+          // Update the input field
+          zipCodeInput.value = savedZip;
+
+          // Update global variables if we have coordinates for this ZIP
+          window.geocodeZipCode(savedZip).then(result => {
+            if (result) {
+              console.log(`Initialized with saved ZIP: ${savedZip} (${result.lat}, ${result.lng})`);
+            } else {
+              console.log(`Failed to geocode saved ZIP ${savedZip}, using default`);
+              zipCodeInput.value = DEFAULT_ZIP;
+              saveZipCode(DEFAULT_ZIP);
+            }
+          });
+        } else {
+          // Ensure default ZIP is saved
+          saveZipCode(DEFAULT_ZIP);
+        }
+      }
 
       // DOM elements for radius and ZIP
       const radiusMilesInput = document.getElementById("radiusMiles");
@@ -6420,12 +6488,23 @@
         }
       }
 
-      // Add event listener to ZIP code input for real-time geocoding
+      // Add event listener to ZIP code input for persistence and real-time geocoding
+      zipCodeInput.addEventListener("change", function() {
+        const newZip = this.value.trim();
+        if (newZip && /^\d{5}$/.test(newZip)) {
+          saveZipCode(newZip);
+          trackFormInteraction('zip_code_saved', 'zip_input', newZip);
+        }
+      });
+
       zipCodeInput.addEventListener("blur", async function() {
         const newZip = this.value.trim();
         if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
           trackFormInteraction('zip_code_changed', 'zip_input', `${window.ZIP_CODE} → ${newZip}`);
-          await window.geocodeZipCode(newZip);
+          const result = await window.geocodeZipCode(newZip);
+          if (result) {
+            saveZipCode(newZip);
+          }
         }
       });
 
@@ -6434,7 +6513,10 @@
         if (e.key === "Enter") {
           const newZip = this.value.trim();
           if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
-            await window.geocodeZipCode(newZip);
+            const result = await window.geocodeZipCode(newZip);
+            if (result) {
+              saveZipCode(newZip);
+            }
           }
         }
       });
@@ -7825,22 +7907,40 @@ out center tags;`;
         e.preventDefault();
 
         trackButtonClick('Reset Categories');
-        trackPageInteraction('reset_data', 'categories', 'all user categories cleared');
+        trackPageInteraction('reset_data', 'categories', 'all user categories and ZIP code reset');
 
         // 1. Clear stored user categories, groups, and hidden groups:
         localStorage.removeItem("userCategories");
         localStorage.removeItem("userGroups");
         localStorage.removeItem("hiddenGroups");
 
-        // 2. Remove any header-level new-entry if present:
+        // 2. Reset ZIP code to default:
+        saveZipCode(DEFAULT_ZIP);
+        const zipCodeInput = document.getElementById("zipCode");
+        zipCodeInput.value = DEFAULT_ZIP;
+
+        // Update global variables and UI to default ZIP coordinates
+        window.ZIP_CODE = DEFAULT_ZIP;
+        window.LAT = 42.1543;
+        window.LNG = -88.1362;
+
+        // Update display elements
+        const zipDisplay = document.getElementById("zipDisplay");
+        const coordsDisplay = document.getElementById("coordsDisplay");
+        if (zipDisplay) zipDisplay.textContent = DEFAULT_ZIP;
+        if (coordsDisplay) coordsDisplay.textContent = "42.1543, -88.1362";
+
+        // 3. Remove any header-level new-entry if present:
         const headerContainer = document.getElementById("headerNewEntryContainer");
         headerContainer.innerHTML = "";
 
-        // 3. Remove any category-level new-entry rows:
+        // 4. Remove any category-level new-entry rows:
         document.querySelectorAll(".category-item.new-entry").forEach(item => item.remove());
 
-        // 4. Rebuild category checkboxes from scratch:
+        // 5. Rebuild category checkboxes from scratch:
         initializeCategoryCheckboxes();
+
+        console.log(`Reset complete: ZIP code restored to ${DEFAULT_ZIP}, categories cleared`);
       });
 
       // ======================================================
@@ -8078,6 +8178,9 @@ out center tags;`;
         document.querySelectorAll('.radius-meters').forEach(el => {
           el.textContent = RADIUS;
         });
+
+        // Initialize ZIP code persistence
+        initializeZipCode();
 
         // Initialize version management system
         initializeVersion();
@@ -8840,6 +8943,26 @@ This is a test with a [link](https://example.com) and an [email](mailto:test@exa
         }
       });
     })();
+  </script>
+
+  <!-- ZIP Code Persistence Initialization -->
+  <script>
+    // ======================================================
+    // ZIP Code Persistence Initialization
+    // ======================================================
+
+    // Ensure ZIP code initialization happens after all DOM elements are ready
+    document.addEventListener('DOMContentLoaded', function() {
+      // Small delay to ensure all other initialization is complete
+      setTimeout(() => {
+        if (typeof initializeZipCode === 'function') {
+          console.log('Initializing ZIP code persistence...');
+          initializeZipCode();
+        } else {
+          console.warn('initializeZipCode function not found');
+        }
+      }, 100);
+    });
   </script>
 </body>
 </html>
