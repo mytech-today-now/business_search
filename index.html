@@ -6488,12 +6488,24 @@
         }
       }
 
-      // Add event listener to ZIP code input for persistence and real-time geocoding
+      // Add event listener to ZIP code input for persistence and real-time geocoding - refactored for seamless localStorage integration
       zipCodeInput.addEventListener("change", function() {
         const newZip = this.value.trim();
         if (newZip && /^\d{5}$/.test(newZip)) {
-          saveZipCode(newZip);
-          trackFormInteraction('zip_code_saved', 'zip_input', newZip);
+          if (window.localStorage) {
+            try {
+              localStorage.setItem("zip", newZip);
+              console.log(`ZIP persistence: Saved ZIP ${newZip} on change`);
+              saveZipCode(newZip);
+              trackFormInteraction('zip_code_saved', 'zip_input', newZip);
+            } catch (error) {
+              console.warn("ZIP persistence: Failed to save ZIP on change", error);
+            }
+          } else {
+            console.warn("ZIP persistence: localStorage not available for change event");
+          }
+        } else if (newZip && !/^\d{5}$/.test(newZip)) {
+          console.warn(`ZIP persistence: Invalid ZIP format on change: ${newZip}`);
         }
       });
 
@@ -6503,20 +6515,46 @@
           trackFormInteraction('zip_code_changed', 'zip_input', `${window.ZIP_CODE} → ${newZip}`);
           const result = await window.geocodeZipCode(newZip);
           if (result) {
-            saveZipCode(newZip);
+            if (window.localStorage) {
+              try {
+                localStorage.setItem("zip", newZip);
+                console.log(`ZIP persistence: Saved ZIP ${newZip} on blur after geocoding`);
+                saveZipCode(newZip);
+              } catch (error) {
+                console.warn("ZIP persistence: Failed to save ZIP on blur", error);
+              }
+            } else {
+              console.warn("ZIP persistence: localStorage not available for blur event");
+              saveZipCode(newZip);
+            }
           }
+        } else if (newZip && !/^\d{5}$/.test(newZip)) {
+          console.warn(`ZIP persistence: Invalid ZIP format on blur: ${newZip}`);
         }
       });
 
-      // Also handle Enter key on ZIP input
+      // Also handle Enter key on ZIP input - refactored for seamless localStorage integration
       zipCodeInput.addEventListener("keydown", async function(e) {
         if (e.key === "Enter") {
           const newZip = this.value.trim();
           if (newZip && /^\d{5}$/.test(newZip) && newZip !== window.ZIP_CODE) {
             const result = await window.geocodeZipCode(newZip);
             if (result) {
-              saveZipCode(newZip);
+              if (window.localStorage) {
+                try {
+                  localStorage.setItem("zip", newZip);
+                  console.log(`ZIP persistence: Saved ZIP ${newZip} on Enter key`);
+                  saveZipCode(newZip);
+                } catch (error) {
+                  console.warn("ZIP persistence: Failed to save ZIP on Enter", error);
+                }
+              } else {
+                console.warn("ZIP persistence: localStorage not available for Enter key event");
+                saveZipCode(newZip);
+              }
             }
+          } else if (newZip && !/^\d{5}$/.test(newZip)) {
+            console.warn(`ZIP persistence: Invalid ZIP format on Enter: ${newZip}`);
           }
         }
       });
@@ -7900,7 +7938,7 @@ out center tags;`;
       setupDynamicAddRemoveGroups();
 
       // ======================================================
-      // Reset Categories Functionality
+      // Reset Categories Functionality - refactored for seamless localStorage integration
       // ======================================================
       const resetCategoriesLink = document.getElementById("resetCategoriesLink");
       resetCategoriesLink.addEventListener("click", function(e) {
@@ -7909,15 +7947,35 @@ out center tags;`;
         trackButtonClick('Reset Categories');
         trackPageInteraction('reset_data', 'categories', 'all user categories and ZIP code reset');
 
-        // 1. Clear stored user categories, groups, and hidden groups:
-        localStorage.removeItem("userCategories");
-        localStorage.removeItem("userGroups");
-        localStorage.removeItem("hiddenGroups");
+        // 1. Clear stored user categories, groups, and hidden groups with localStorage feature detection:
+        if (window.localStorage) {
+          try {
+            localStorage.removeItem("userCategories");
+            localStorage.removeItem("userGroups");
+            localStorage.removeItem("hiddenGroups");
+            console.log("ZIP persistence: Cleared user categories, groups, and hidden groups");
+          } catch (error) {
+            console.warn("ZIP persistence: Failed to clear user data from localStorage", error);
+          }
+        } else {
+          console.warn("ZIP persistence: localStorage not available for clearing user data");
+        }
 
-        // 2. Reset ZIP code to default:
-        saveZipCode(DEFAULT_ZIP);
+        // 2. Reset ZIP code to default with guarded localStorage removal:
+        if (window.localStorage) {
+          try {
+            localStorage.removeItem("zip");
+            console.log(`ZIP persistence: Removed ZIP from localStorage during reset`);
+          } catch (error) {
+            console.warn("ZIP persistence: Failed to remove ZIP from localStorage", error);
+          }
+        } else {
+          console.warn("ZIP persistence: localStorage not available for ZIP removal");
+        }
+
         const zipCodeInput = document.getElementById("zipCode");
         zipCodeInput.value = DEFAULT_ZIP;
+        saveZipCode(DEFAULT_ZIP);
 
         // Update global variables and UI to default ZIP coordinates
         window.ZIP_CODE = DEFAULT_ZIP;
@@ -7940,7 +7998,7 @@ out center tags;`;
         // 5. Rebuild category checkboxes from scratch:
         initializeCategoryCheckboxes();
 
-        console.log(`Reset complete: ZIP code restored to ${DEFAULT_ZIP}, categories cleared`);
+        console.log(`ZIP persistence: Reset complete - ZIP code restored to ${DEFAULT_ZIP}, categories cleared`);
       });
 
       // ======================================================
@@ -8179,8 +8237,47 @@ out center tags;`;
           el.textContent = RADIUS;
         });
 
-        // Initialize ZIP code persistence
-        initializeZipCode();
+        // Initialize ZIP code persistence - refactored for seamless localStorage integration
+        let computedZip = DEFAULT_ZIP;
+        if (window.localStorage) {
+          try {
+            const storedZip = localStorage.getItem("zip");
+            if (storedZip && /^\d{5}$/.test(storedZip)) {
+              computedZip = storedZip;
+              console.log(`ZIP persistence: Loaded stored ZIP ${computedZip}`);
+            } else {
+              console.log(`ZIP persistence: Using default ZIP ${DEFAULT_ZIP}`);
+            }
+          } catch (error) {
+            console.warn(`ZIP persistence: localStorage read failed, using default ZIP ${DEFAULT_ZIP}`, error);
+          }
+        } else {
+          console.warn(`ZIP persistence: localStorage not available, using default ZIP ${DEFAULT_ZIP}`);
+        }
+
+        // Call initialization with computed ZIP
+        if (computedZip !== DEFAULT_ZIP) {
+          const zipCodeInput = document.getElementById("zipCode");
+          zipCodeInput.value = computedZip;
+          window.geocodeZipCode(computedZip).then(result => {
+            if (result) {
+              console.log(`ZIP persistence: Initialized with stored ZIP ${computedZip} (${result.lat}, ${result.lng})`);
+            } else {
+              console.log(`ZIP persistence: Failed to geocode stored ZIP ${computedZip}, reverting to default`);
+              zipCodeInput.value = DEFAULT_ZIP;
+              if (window.localStorage) {
+                try {
+                  localStorage.setItem("zip", DEFAULT_ZIP);
+                  console.log(`ZIP persistence: Reverted to default ZIP ${DEFAULT_ZIP}`);
+                } catch (error) {
+                  console.warn("ZIP persistence: Failed to save default ZIP", error);
+                }
+              }
+            }
+          });
+        } else {
+          initializeZipCode();
+        }
 
         // Initialize version management system
         initializeVersion();
@@ -8945,24 +9042,6 @@ This is a test with a [link](https://example.com) and an [email](mailto:test@exa
     })();
   </script>
 
-  <!-- ZIP Code Persistence Initialization -->
-  <script>
-    // ======================================================
-    // ZIP Code Persistence Initialization
-    // ======================================================
-
-    // Ensure ZIP code initialization happens after all DOM elements are ready
-    document.addEventListener('DOMContentLoaded', function() {
-      // Small delay to ensure all other initialization is complete
-      setTimeout(() => {
-        if (typeof initializeZipCode === 'function') {
-          console.log('Initializing ZIP code persistence...');
-          initializeZipCode();
-        } else {
-          console.warn('initializeZipCode function not found');
-        }
-      }, 100);
-    });
-  </script>
+  <!-- ZIP Code Persistence now integrated into main DOMContentLoaded handler -->
 </body>
 </html>
